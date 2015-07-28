@@ -1,0 +1,16 @@
+ QT2S: Qatar Traffic Social Sensing
+ ----------------------------------
+
+ Install Redis.
+ Start Redis server
+
+ REDIS queues:
+ Namespace: QMIC
+ Names:
+	1. raw_tweets
+	2. traffic_tweets
+	3. geocoded_tweets
+
+ Use multiprocessing module to run all parts of the project.
+
+ Run QT2S.py to start.
