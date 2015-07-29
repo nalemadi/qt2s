@@ -7,6 +7,7 @@ import logging
 from tweepy.streaming import StreamListener
 from tweepy import OAuthHandler
 from tweepy import Stream
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -36,14 +37,35 @@ class TwitterCollector(StreamListener):
 		self.redis_key = r_channel
 		self.keywords = [w.strip() for w in open(keyword_dict_file).read().split(',')]
 
+	@staticmethod
+	def is_valid_tweet(data):
+		"""
+		check if a string is a valid tweet. This will discard all error messages sent by Twitter.
+		# TODO: make sure we are not mishandling some serious Twitter problems such as rate limits, etc.
+		:param data: a string returned by Tweepy from Twitter.
+		:return: False if the data is not a tweet, True otherwise
+		"""
+		try:
+			o = json.loads(data)
+			if o['text']:
+				return True
+		except ValueError, e:
+			return False
+
+
 	def on_data(self, data):
 		# push data to redis queue
-		self.db.rpush(self.redis_key, data.strip())
-		logger.debug('TWEET: %s', data.strip())
+		if self.is_valid_tweet(data):
+			self.db.rpush(self.redis_key, data.strip())
+			logger.debug('TWEET: %s', data)
+		else:
+			logger.warning("Tweepy returned a non Tweet object: %s", data)
 		return True
 
+
 	def on_error(self, status):
-		logger.error("Error in twitter listener: %s", status)
+		logger.error("Error in twitter listener, status: %s", status)
+
 
 	def get_tweets(self):
 		"""
@@ -53,9 +75,10 @@ class TwitterCollector(StreamListener):
 		auth = OAuthHandler(self.consumer_key, self.consumer_secret)
 		auth.set_access_token(self.access_token, self.access_token_secret)
 		while True:
+			logger.warning('Reconnecting to twitter stream after disconnection.')
 			try:
 				sapi = Stream(auth, self)
 				sapi.filter(track=self.keywords)
-			except:
-				logger.error("Something went wrong with the lister, but it restarted")
+			except Exception as e:
+				logger.error("Something went wrong with the lister, the exception is: %s", e)
 				continue

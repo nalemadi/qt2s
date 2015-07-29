@@ -8,6 +8,8 @@ import multiprocessing
 from TwitterCollector import TwitterCollector
 from TwitterClassifier import TwitterClassifier
 from TwitterLocationER import TwitterLocationER
+from datetime import datetime
+
 
 REDIS_NAMESPACE = 'QMIC'
 REDIS_NAME_RAW_TWEETS = 'raw_tweets'
@@ -25,7 +27,7 @@ SLANG_DICT_FILE = 'data/slang_dict.csv'
 # TODO: turn logging level to INFO before deploying into production.
 logging.basicConfig(filename='/tmp/qmic.log',
 			format = '%(levelname)s: %(module)s: %(funcName)s: %(message)s',
-			level=logging.DEBUG)
+			level=logging.INFO)
 logger = logging.getLogger('__name__')
 
 def collect_tweets():
@@ -33,8 +35,10 @@ def collect_tweets():
 	Collect tweets matching input keywords in KEYWORD_DICT_FILE
 	:return: writes into Redis Channel: REDIS_NAMESPACE:REDIS_NAME_RAW_TWEETS
 	"""
-	twitter_collector = TwitterCollector(r_db=REDIS_DB, r_channel='%s:%s' % (REDIS_NAMESPACE, REDIS_NAME_RAW_TWEETS),
+	write_channel = '%s:%s' % (REDIS_NAMESPACE, REDIS_NAME_RAW_TWEETS)
+	twitter_collector = TwitterCollector(r_db=REDIS_DB, r_channel=write_channel,
 										keyword_dict_file=KEYWORD_DICT_FILE)
+	logger.info("Starting Collector. Will read from twitter and write into %s", write_channel)
 	twitter_collector.get_tweets()
 
 
@@ -47,6 +51,7 @@ def classify_tweets():
 	read_channel = '%s:%s' % (REDIS_NAMESPACE, REDIS_NAME_RAW_TWEETS)
 	write_channel = '%s:%s' % (REDIS_NAMESPACE, REDIS_NAME_TRAFFIC_TWEETS)
 	tweet_classifier = TwitterClassifier(method='Keyword', keyword_dictionary_file=KEYWORD_DICT_FILE)
+	logger.info("Starting Classifier. Will read from %s and write into %s", read_channel, write_channel)
 	while True:
 		# read from Redis channel: REDIS_NAMESPACE:REDIS_NAME_RAW_TWEETS
 		data = REDIS_DB.blpop(read_channel)
@@ -70,6 +75,8 @@ def extract_entities():
 	read_channel = '%s:%s' % (REDIS_NAMESPACE, REDIS_NAME_TRAFFIC_TWEETS)
 	write_channel = '%s:%s' % (REDIS_NAMESPACE, REDIS_NAME_GEOCODED_TWEETS)
 	twitter_location_er = TwitterLocationER(location_dictionary_file=LOCATION_DICT_FILE, slang_dictionary_file=SLANG_DICT_FILE)
+	logger.info("Starting LocationTagger. Will read from %s and write into %s", read_channel, write_channel)
+
 	while True:
 		# read from Redis channel: REDIS_NAMESPACE:REDIS_NAME_RAW_TWEETS
 		data = REDIS_DB.blpop(read_channel)
@@ -87,6 +94,7 @@ def extract_entities():
 			REDIS_DB.rpush(write_channel, json.dumps(data))
 
 if __name__ == '__main__':
+	logger.info('\n\n================================\n\nNEW INSTANCE\n-------------\nStarted on: %s',datetime.now())
 	collector = multiprocessing.Process(name='Collector', target=collect_tweets)
 	collector.start()
 

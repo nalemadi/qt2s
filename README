@@ -1,16 +1,44 @@
  QT2S: Qatar Traffic Social Sensing
  ----------------------------------
+ This project is about the identification of Qatar traffic related tweets.
+ The overall objective is to listen to Twitter live steam for all traffic-related tweets in Qatar, then
+ enrich those tweets with new metadata such as: location names, geo-coordinates, etc.
 
- Install Redis.
- Start Redis server
+ There are three main classes so far (will add new one in the future):
 
- REDIS queues:
+  1. TwitterCollector: collects tweets from Twitter stream.
+  2. TwitterClassifier: classifies a tweet into traffic/non-traffic related.
+  3. TwitterLocationER: extracts named location entities from the tweet body.
+
+
+ Dependencies
+ ------------
+ 1. Redis (for queueing and messaging.)
+ 2. NLTK (for text processing: tokenization, etc.)
+ 3. Tweepy (Twitter streaming API for tweets collection.)
+
+ How to run
+ ----------
+ 1. Start Redis server.
+ 2. Make sure NLTK has all required data (some  tokenizers may need specific packages).
+ 3. Run QT2S.py to start (this will trigger three separate processes)
+ 	TwitterCollector ---> Queue1 >--- TwitterClassifier ---> Queue2 >----- TwitterLocationER ----> Queue3
+
+ REDIS QUEUES
+ -------------
+ Use default connection parameters: host='localhost', port=6379, db=0
  Namespace: QMIC
  Names:
-	1. raw_tweets
-	2. traffic_tweets
-	3. geocoded_tweets
+	Queue1: raw_tweets
+	Queue2: traffic_tweets
+	Queue3: geocoded_tweets
 
- Use multiprocessing module to run all parts of the project.
 
- Run QT2S.py to start.
+
+ 	********
+
+
+ Miscellaneous
+ -------------
+ - We are using multiprocessing module to run all parts of the project
+ #TODO: Need to make sure the processes never fail. [--> run them as daemons?!]
