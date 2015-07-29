@@ -68,8 +68,6 @@ class TwitterLocationER:
 		logger.debug('Locations found: %s', found_locations)
 		return found_locations
 
-#lner = TwitterLocationER('data/location_dict.csv')
-#lner.find_locations('Hello @Sofiane. you are in #West Bay http://t.co/ersas123s')
 
 
 

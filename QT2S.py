@@ -14,7 +14,7 @@ from datetime import datetime
 REDIS_NAMESPACE = 'QMIC'
 REDIS_NAME_RAW_TWEETS = 'raw_tweets'
 REDIS_NAME_TRAFFIC_TWEETS = 'traffic_tweets'
-REDIS_NAME_GEOCODED_TWEETS = 'geocoded_tweets'
+REDIS_NAME_LOCATED_TWEETS = 'located_tweets'
 REDIS_DB = redis.Redis()
 
 
@@ -73,7 +73,7 @@ def extract_entities():
 	:return: writes into write channel
 	"""
 	read_channel = '%s:%s' % (REDIS_NAMESPACE, REDIS_NAME_TRAFFIC_TWEETS)
-	write_channel = '%s:%s' % (REDIS_NAMESPACE, REDIS_NAME_GEOCODED_TWEETS)
+	write_channel = '%s:%s' % (REDIS_NAMESPACE, REDIS_NAME_LOCATED_TWEETS)
 	twitter_location_er = TwitterLocationER(location_dictionary_file=LOCATION_DICT_FILE, slang_dictionary_file=SLANG_DICT_FILE)
 	logger.info("Starting LocationTagger. Will read from %s and write into %s", read_channel, write_channel)
 
@@ -92,9 +92,10 @@ def extract_entities():
 			data['contains_bad_words'] = True if len(bad_words) > 0 else False
 			# Write to a new Redis channel: REDIS_NAMESPACE:REDIS_NAME_TRAFFIC_TWEETS
 			REDIS_DB.rpush(write_channel, json.dumps(data))
+			logger.info("New located tweets:%s\n Locations: %s", data['text'], list(locations))
 
 if __name__ == '__main__':
-	logger.info('\n\n================================\n\nNEW INSTANCE\n-------------\nStarted on: %s',datetime.now())
+	logger.info('\n\n=================\n\nNEW INSTANCE\n-------------\n-->Started on: %s\n',datetime.now())
 	collector = multiprocessing.Process(name='Collector', target=collect_tweets)
 	collector.start()
 
