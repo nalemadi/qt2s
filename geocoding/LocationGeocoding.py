@@ -4,8 +4,13 @@ import urllib2
 from urllib2 import HTTPError
 import json
 import logging
+import googlemaps
+from googlemaps.exceptions import ApiError, TransportError, Timeout, HTTPError
+
 
 logger = logging.getLogger('__name__')
+
+
 class LocationGeocoding:
 	def __init__(self, google_key=None, bing_key=None, country_code='QA'):
 		self.google_key = google_key
@@ -13,39 +18,90 @@ class LocationGeocoding:
 		self.country_code = country_code
 
 	def google_geocoding(self, location):
+		"""
+		Use GoogleMaps api to geocode a location.
+		:param location: text describing a location name
+		:return: a location object with: formatted_address, lat, lng attributes
+		"""
+		# TODO: Try to consider all location from the country_code.
+		try:
+			gmaps = googlemaps.Client(key=self.google_key)
+			# Use components to make sure the first result is about Qatar.
+			res = gmaps.geocode(location, components={'country': self.country_code})
+			if not res or len(res) == 0:
+				return None
+			# Thanks to components, we can consider the first result only.
+			g_location = self._format_google_location(res[0])
+			return g_location
+		except ApiError as e:
+			logger.error("problem with googlemap geocoding (ApiError): %s", e)
+			return None
+		except HTTPError as e:
+			logger.error("problem with googlemap geocoding (HTTPError): %s", e)
+			return None
+		except Timeout as e:
+			logger.error("problem with googlemap geocoding (Timeout): %s", e)
+			return None
+		except TransportError as e:
+			logger.error("problem with googlemap geocoding (TransportError): %s", e)
+			return None
+
+	def bing_geocoding(self, location):
+		"""
+		TBD
+		:param location:
+		:return:
+		"""
+
+
+	def google_geocoding_from_scratch(self, location):
 		basepath = 'https://maps.googleapis.com/maps/api/geocode/json?'
-		params = urllib.urlencode({'address': location, 'components': 'country :'+self.country_code,
+		params = urllib.urlencode({'address': location, 'components': {'country :'+self.country_code},
 								   'key': self.google_key})
-		print basepath+params
+		#print basepath+params
 		obj = self.run_request(basepath + params)
 		if 'results' not in obj.keys() or len(obj['results']) == 0:
 			return None
-		obj = obj['results'][0]
-		print json.dumps(obj)
-		print self._format_google_location(obj)
 
-	def _format_google_location(self, o):
+		results = obj['results']
+		# check if there's a result about our country code: Qatar
+		indx = -1
+		for i, result in enumerate(results):
+			country = result['address_components'][-1]
+			if country['short_name'] == self.country_code:
+				indx = i
+				break
+		if indx == -1:
+			return None
+		return self._format_google_location(results[indx])
+
+	def _format_google_location(self, g_location):
+		"""
+		Extracts relevant information from googlemaps results.
+		:param g_location: one googlemaps result
+		:return: dictionary of a location with: formatted_address, lat, lng
+		"""
+		if 'formatted_address' not in g_location.keys():
+			return None
+		if 'geometry' not in g_location.keys() or 'location' not in g_location['geometry'].keys()\
+				or 'lat' not in g_location['geometry']['location'].keys():
+			return None
+
 		location = dict()
-		if 'address_components' in o.keys() and len(o['address_components']) > 0:
-			country = o['address_components'][-1]
-			if country['short_name'] != self.country_code:
-				print 'P1'
-				return None
-
-		if 'formatted_address' not in o.keys():
-			print 'P2'
-			return None
-		location['google_formatted_address'] = o['formatted_address']
-
-		if 'geometry' not in o.keys() or 'location' not in o['geometry'].keys()\
-				or 'lat' not in o['geometry']['location'].keys():
-			print 'P3'
-			return None
-		location['lat'] = o['geometry']['location']['lat']
-		location['lng'] = o['geometry']['location']['lng']
+		location['formatted_address'] = g_location['formatted_address']
+		location['lat'] = g_location['geometry']['location']['lat']
+		location['lng'] = g_location['geometry']['location']['lng']
 		return location
 
-	def run_request(self,url,data=None,headers=None):
+	@staticmethod
+	def run_request(url, data=None, headers=None):
+		"""
+		This is a general method to interact with any restful API implementation.
+		:param url: The url should be prepared in advance with all it's parameters (key, options, etc.)
+		:param data: the data to supply to the server, case of POST requests
+		:param headers: If required.
+		:return: A JSON object of the results. -- Make sure you request valid JSON from the API server.
+		"""
 		if data and headers:
 			request = urllib2.Request(url, data, headers)
 		elif data:
@@ -61,6 +117,9 @@ class LocationGeocoding:
 			logger.error('%s: %s - Needs to generate new tokens', e.code, e.reason)
 			return None
 
+
+#TODO: @Sofiane Make sure we replace this key with a applications pecific one
 gkey = '[REDACTED]'
-lg = LocationGeocoding(gkey)
-lg.google_geocoding('City Center shopping mall')
+lg = LocationGeocoding(google_key=gkey, country_code='QA')
+print lg.google_geocoding('City Center shopping mall')
+print lg.google_geocoding_from_scratch('City Center shopping mall')
