@@ -16,6 +16,7 @@ class TwitterCollector(StreamListener):
 	""" A listener handles tweets are the received from the stream.
 	This is a basic listener that just prints received tweets to stdout.
 	"""
+	# TODO: consider collecting tweets from: MOI Qatar, Doha News, ...etc.
 	def __init__(self, r_db=None, r_channel=None, keyword_dict_file=None):
 		if not (r_db and r_channel):
 			raise Exception("You should provide redis: db and channel")
@@ -52,7 +53,6 @@ class TwitterCollector(StreamListener):
 		except ValueError, e:
 			return False
 
-
 	def on_data(self, data):
 		# push data to redis queue
 		if self.is_valid_tweet(data):
@@ -62,10 +62,8 @@ class TwitterCollector(StreamListener):
 			logger.warning("Tweepy returned a non Tweet object: %s", data)
 		return True
 
-
 	def on_error(self, status):
 		logger.error("Error in twitter listener, status: %s", status)
-
 
 	def get_tweets(self):
 		"""

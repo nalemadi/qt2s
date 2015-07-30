@@ -89,6 +89,9 @@ def extract_entities():
 		data = data[1]
 		data = json.loads(data)
 		locations = twitter_location_er.find_locations(data['text'])
+		# TODO: geo code the locations.
+		# TODO: check if the locations have been geocoded in the past before sending online requests.
+
 		bad_words = twitter_location_er.contains_bad_words(data['text'])
 		if len(locations) > 0:
 			data['traffic_locations'] = list(locations)

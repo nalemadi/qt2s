@@ -48,7 +48,7 @@ class LocationGeocoding:
 
 	def bing_geocoding(self, location):
 		"""
-		TBD
+		TBD @ Noora
 		:param location:
 		:return:
 		"""
@@ -119,7 +119,7 @@ class LocationGeocoding:
 
 
 #TODO: @Sofiane Make sure we replace this key with a applications pecific one
-gkey = '[REDACTED]'
-lg = LocationGeocoding(google_key=gkey, country_code='QA')
-print lg.google_geocoding('City Center shopping mall')
-print lg.google_geocoding_from_scratch('City Center shopping mall')
+#gkey = '[REDACTED]'
+#lg = LocationGeocoding(google_key=gkey, country_code='QA')
+#print lg.google_geocoding('City Center shopping mall')
+#print lg.google_geocoding_from_scratch('City Center shopping mall')
