@@ -45,9 +45,6 @@ class LocationGeocoding:
 		location['lng'] = o['geometry']['location']['lng']
 		return location
 
-
-
-
 	def run_request(self,url,data=None,headers=None):
 		if data and headers:
 			request = urllib2.Request(url, data, headers)

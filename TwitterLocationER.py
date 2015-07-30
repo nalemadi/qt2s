@@ -52,9 +52,9 @@ class TwitterLocationER:
 		found_bad_words = [w for w in text if w in self.bad_words]
 		return set(found_bad_words)
 
-	def find_locations(self, text):
+	def find_locations_naive(self, text):
 		"""
-		Applies a simple matching between locations and the text of a tweet.
+		Applies a simple substring matching between locations and the text of a tweet.
 		:param text: Content of a tweet
 		:return: a list of locations found in the tweet.
 		"""
@@ -67,7 +67,14 @@ class TwitterLocationER:
 		logger.debug('Locations found: %s', found_locations)
 		return found_locations
 
-	def guess_locations(self, text):
+	def find_locations(self, text):
+		"""
+		Checks if a location exist in the text.
+		If the location name is one word, verify if it's among the tokens of the input text.
+		ElseIF the location name is multiword, perform a simple substring matching.
+		:param text: body of the tweet
+		:return: set of locations found in the text.
+		"""
 		found_locations = set()
 		text = self.clean_text(text.lower())
 		twords = text.split()
@@ -78,6 +85,8 @@ class TwitterLocationER:
 				found_locations.add(location)
 		logger.debug('Locations found: %s', found_locations)
 		return found_locations
+
+
 
 
 
