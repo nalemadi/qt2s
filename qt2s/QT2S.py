@@ -8,6 +8,7 @@ import multiprocessing
 from TwitterCollector import TwitterCollector
 from TwitterClassifier import TwitterClassifier
 from TwitterLocationER import TwitterLocationER
+from SlangDetection import SlangDetection
 from datetime import datetime
 
 
@@ -27,9 +28,10 @@ SLANG_DICT_FILE = 'data/slang_dict.csv'
 # Initialize the logger
 # TODO: turn logging level to INFO before deploying into production.
 logging.basicConfig(filename='/tmp/qmic.log',
-			format = '%(levelname)s: %(module)s: %(funcName)s: %(message)s',
+			format='%(levelname)s: %(module)s: %(funcName)s: %(message)s',
 			level=logging.INFO)
 logger = logging.getLogger('__name__')
+
 
 def collect_tweets():
 	"""
@@ -67,18 +69,19 @@ def classify_tweets():
 			REDIS_DB.rpush(write_channel, json.dumps(data))
 
 
-
 def extract_entities():
 	"""
 	Extract location from tweets. Blocking reads from read_channel,
 	extract locations, then writes into write channel
+	!! This also checks for the presence of bad words in the tweet text
 	:return: writes into write channel
 	"""
 	read_channel = '%s:%s' % (REDIS_NAMESPACE, REDIS_NAME_TRAFFIC_TWEETS)
 	write_channel = '%s:%s' % (REDIS_NAMESPACE, REDIS_NAME_LOCATED_TWEETS)
 	non_located_channel = '%s:%s' % (REDIS_NAMESPACE, REDIS_NAME_NON_LOCATED_TWEETS)
 
-	twitter_location_er = TwitterLocationER(location_dictionary_file=LOCATION_DICT_FILE, slang_dictionary_file=SLANG_DICT_FILE)
+	twitter_location_er = TwitterLocationER(location_dictionary_file=LOCATION_DICT_FILE)
+	slang_detection = SlangDetection(slang_dictionary_file=SLANG_DICT_FILE)
 	logger.info("Starting LocationTagger. Will read from %s and write into %s", read_channel, write_channel)
 
 	while True:
@@ -92,7 +95,7 @@ def extract_entities():
 		# TODO: geo code the locations.
 		# TODO: check if the locations have been geocoded in the past before sending online requests.
 
-		bad_words = twitter_location_er.contains_bad_words(data['text'])
+		bad_words = slang_detection.contains_bad_words(data['text'])
 		if len(locations) > 0:
 			data['traffic_locations'] = list(locations)
 			data['bad_words'] = list(bad_words)
