@@ -18,6 +18,8 @@ Duhail
 Dukhan
 Al Daayen
 Al Dafna
+Al Dawha
+Doha
 Al Doha Al Jadeeda
 Al Ebb
 Al Egla
@@ -37,14 +39,15 @@ Fereej Al Nasr
 Fereej Al Soudan
 Fereej Al Zaeem
 Gharafat Al Rayyan
+Al Rayyan
 Al Gharafa
 Al Ghuwariyah
 Hamad Medical City
 Hazm Al Markhiya
 Al Hilal
 Industrial Area
-Izghawa (Al Rayyan)
-Izghawa (Umm Salal)
+Izghawa
+Umm Salal
 Jabal Thuaileb
 Jelaiah
 Jeryan Jenaihat
@@ -128,8 +131,8 @@ Al Seej
 Al Tarfa
 Al Thakhira
 Al Themaid
-Al Thumama (Doha)
-Al Thumama (Al Wakrah)
+Al Thumama
+Al Thumama
 Umm Bab
 Umm Birka
 Umm Ghuwailina

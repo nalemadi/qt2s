@@ -3,14 +3,14 @@ __author__ = 'sofiane'
 
 import logging
 
-from qt2s.resources.resources import clean_text
+from resources.resources import clean_text
 
 
 logger = logging.getLogger('__name__')
 
 
 class TwitterLocationER:
-	def __init__(self, location_dictionary_file=None):
+	def __init__(self, location_dictionary_file=None, cities_name=None):
 		if location_dictionary_file is None:
 			logger.error("You should provide a path to the location dictionary file")
 			raise Exception("Error: You should provide a path to the location dictionary file")
@@ -18,8 +18,11 @@ class TwitterLocationER:
 		with open(location_dictionary_file) as f:
 			locations = [location.split(';')[2].lower() for location in f.read().split('\n')[:-1]]
 
-		self.locations = [self.clean_text(location) for location in locations]
-		logger.debug('New Instance\n locations: %s', self.locations)
+		self.locations = [clean_text(location) for location in locations]
+		with open(cities_name) as f:
+			self.locations += [location.lower() for location in f.read().split('\n')[:-1]]
+
+		logger.info('New Instance\n Locations considered: %s', self.locations)
 
 	def find_locations_naive(self, text):
 		"""
@@ -45,7 +48,7 @@ class TwitterLocationER:
 		:return: set of locations found in the text.
 		"""
 		found_locations = set()
-		text = self.clean_text(text.lower())
+		text = clean_text(text.lower())
 		twords = text.split()
 		for location in self.locations:
 			if len(location.split()) > 1 and location in text:

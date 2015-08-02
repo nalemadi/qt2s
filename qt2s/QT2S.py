@@ -23,6 +23,7 @@ REDIS_DB = redis.Redis()
 KEYWORD_DICT_FILE = 'data/traffic_dict.csv'
 LOCATION_DICT_FILE = 'data/location_dict.csv'
 SLANG_DICT_FILE = 'data/slang_dict.csv'
+CITIES_NAME = 'data/qatar_cities_dict.txt'
 
 
 # Initialize the logger
@@ -32,6 +33,7 @@ logging.basicConfig(filename='/tmp/qmic.log',
 			level=logging.INFO)
 logger = logging.getLogger('__name__')
 
+# just for testing
 
 def collect_tweets():
 	"""
@@ -80,7 +82,7 @@ def extract_entities():
 	write_channel = '%s:%s' % (REDIS_NAMESPACE, REDIS_NAME_LOCATED_TWEETS)
 	non_located_channel = '%s:%s' % (REDIS_NAMESPACE, REDIS_NAME_NON_LOCATED_TWEETS)
 
-	twitter_location_er = TwitterLocationER(location_dictionary_file=LOCATION_DICT_FILE)
+	twitter_location_er = TwitterLocationER(location_dictionary_file=LOCATION_DICT_FILE, cities_name=CITIES_NAME)
 	slang_detection = SlangDetection(slang_dictionary_file=SLANG_DICT_FILE)
 	logger.info("Starting LocationTagger. Will read from %s and write into %s", read_channel, write_channel)
 

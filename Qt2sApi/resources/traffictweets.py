@@ -58,7 +58,8 @@ class TrafficTweets(Resource):
 		""" retrieve a list of tweets
 		:rtype : list of tweets
 		"""
+		channel = 'QMIC:located_tweets'
 		redis_db = redis.Redis()
-		tweets = [json.loads(tw) for tw in redis_db.lrange('QMIC:located_tweets', 0, count)]
+		tweets = [json.loads(tw) for tw in redis_db.lrange(channel, -count, -1)]
 		# tweets = [json.loads(tw) for tw in open('../data/tweets_sample.txt').read().split('\n')]
 		return tweets
