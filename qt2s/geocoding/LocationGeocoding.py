@@ -48,10 +48,34 @@ class LocationGeocoding:
 
 	def bing_geocoding(self, location):
 		"""
-		TBD @ Noora
 		:param location:
 		:return:
 		"""
+		basepath = 'http://dev.virtualearth.net/REST/v1/Locations?'
+		location += ' Doha Qatar'
+		formattedQuery = urllib.quote(location)
+		requestURL = '{}q={}&key={}'.format(basepath, formattedQuery, self.bing_key)
+		#print requestURL
+		obj = self.run_request(requestURL)
+
+		if 'resourceSets' not in obj.keys():
+			return None
+
+		estimatedTotal = obj['resourceSets'][0]['estimatedTotal']
+		if estimatedTotal == 0:
+			return None
+		results = estimatedTotal = obj['resourceSets'][0]['resources']
+		if len(results) == 0:
+			return None
+		indx = -1
+		for i, result in enumerate(results):
+			address = result['address']
+			if address['countryRegion'] == 'Qatar':
+				indx = i
+				break
+		if indx == -1:
+			return None
+		return  self._format_bing_location(results[indx])
 
 
 	def google_geocoding_from_scratch(self, location):
@@ -93,6 +117,18 @@ class LocationGeocoding:
 		location['lng'] = g_location['geometry']['location']['lng']
 		return location
 
+	def _format_bing_location(self, b_location):
+		if 'address' not in b_location.keys() or 'formattedAddress' not in b_location['address'].keys():
+			return None
+		if 'point' not in b_location.keys() or 'coordinates' not in b_location['point'].keys():
+			return None
+
+		location = dict()
+		location['formatted_address'] = b_location['address']['formattedAddress']
+		location['lat'] = b_location['point']['coordinates'][0]
+		location['lng'] = b_location['point']['coordinates'][1]
+		return location
+
 	@staticmethod
 	def run_request(url, data=None, headers=None):
 		"""
@@ -119,7 +155,9 @@ class LocationGeocoding:
 
 
 #TODO: @Sofiane Make sure we replace this key with a applications pecific one
-#gkey = '[REDACTED]'
-#lg = LocationGeocoding(google_key=gkey, country_code='QA')
+gkey = '[REDACTED]'
+bkey = '[REDACTED]'
+lg = LocationGeocoding(google_key=gkey, bing_key=bkey, country_code='QA')
 #print lg.google_geocoding('City Center shopping mall')
 #print lg.google_geocoding_from_scratch('City Center shopping mall')
+print lg.bing_geocoding('corniche')
