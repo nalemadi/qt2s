@@ -33,6 +33,7 @@ logging.basicConfig(filename='/tmp/qmic.log',
 			level=logging.INFO)
 logger = logging.getLogger('__name__')
 
+# just for testing
 
 def collect_tweets():
 	"""
