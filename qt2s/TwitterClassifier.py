@@ -1,7 +1,7 @@
 __author__ = 'sofiane'
 
 import logging
-from TwitterLocationER import TwitterLocationER as tler
+from resources.resources import clean_text
 logger = logging.getLogger(__name__)
 
 
@@ -11,7 +11,7 @@ class TwitterClassifier:
 			logger.error('Error: you should provide a path to the keywords file')
 			raise Exception('Error: you should provide a path to the keywords file')
 
-		self.keywords = [tler.clean_text(w.strip().lower()) for w in open(keyword_dictionary_file).read().split(',')]
+		self.keywords = [clean_text(w.strip().lower()) for w in open(keyword_dictionary_file).read().split(',')]
 		if method == 'classifier' and not model:
 			logger.error('Error: you should provide a path to the classifier model')
 			raise Exception('Error: you should provide a path to the classifier model')
@@ -24,7 +24,7 @@ class TwitterClassifier:
 		:return: True if the tweet text has a location name, False otherwise.
 		"""
 		text = tweet['text']
-		text = tler.clean_text(text.lower())
+		text = clean_text(text.lower())
 
 		for keyword in self.keywords:
 			if keyword in text:

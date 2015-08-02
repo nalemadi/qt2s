@@ -36,7 +36,8 @@ class TwitterCollector(StreamListener):
 		# Redis Initialization
 		self.db = r_db
 		self.redis_key = r_channel
-		self.keywords = [w.strip() for w in open(keyword_dict_file).read().split(',')]
+		with open(keyword_dict_file) as f:
+			self.keywords = [w.strip() for w in f.read().split(',')]
 
 	@staticmethod
 	def is_valid_tweet(data):
