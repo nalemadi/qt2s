@@ -1,7 +1,7 @@
 __author__ = 'sofiane'
 
 from flask import Flask, request
-from flask_restful import Resource, Api, reqparse, fields, marshal_with
+from flask_restful import Api
 
 from Qt2sApi.resources.traffictweets import TrafficTweets
 

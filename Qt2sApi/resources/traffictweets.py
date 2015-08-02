@@ -1,6 +1,6 @@
 __author__ = 'sofiane'
 from flask_restful import fields, Resource, marshal_with, reqparse
-import json
+import json, redis
 
 
 class user_id_str(fields.Raw):
@@ -56,8 +56,9 @@ class TrafficTweets(Resource):
 
 	def get_tweets(self, count):
 		""" retrieve a list of tweets
-
 		:rtype : list of tweets
 		"""
-		tweets = [json.loads(tw) for tw in open('../data/tweets_sample.txt').read().split('\n')]
-		return tweets[:count]
+		redis_db = redis.Redis()
+		tweets = [json.loads(tw) for tw in redis_db.lrange('QMIC:located_tweets', 0, count)]
+		# tweets = [json.loads(tw) for tw in open('../data/tweets_sample.txt').read().split('\n')]
+		return tweets
