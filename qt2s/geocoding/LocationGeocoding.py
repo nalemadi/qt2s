@@ -5,6 +5,7 @@ from urllib2 import HTTPError
 import json
 import logging
 import googlemaps
+import os
 from googlemaps.exceptions import ApiError, TransportError, Timeout, HTTPError
 
 
@@ -70,6 +71,8 @@ class LocationGeocoding:
 		indx = -1
 		for i, result in enumerate(results):
 			address = result['address']
+			if 'countryRegion' not in address.keys():
+				return None
 			if address['countryRegion'] == 'Qatar':
 				indx = i
 				break
@@ -161,6 +164,13 @@ class LocationGeocoding:
 		location['lng'] = n_location['lon']
 		return location
 
+	def format_None_result(self):
+		location = dict()
+		location['formatted_address'] = None
+		location['lat'] = None
+		location['lng'] = None
+		return location
+
 	@staticmethod
 	def run_request(url, data=None, headers=None):
 		"""
@@ -191,16 +201,42 @@ gkey = '[REDACTED]'
 bkey = '[REDACTED]'
 lg = LocationGeocoding(google_key=gkey, bing_key=bkey, country_code='QA')
 
-loc_format = {'name': 'Doha',
-	   'coordinates':{
-		   'google': {'lat': 12, 'lng':10, 'formatted_address':'Al Dawha'},
-		   'bing': {'lat': 12, 'lng':10, 'formatted_address':'Al Dawha'},
-		   'nominatim': {'lat': 12, 'lng':10, 'formatted_address':'Al Dawha'}
-	   }
-	}
+# open location_dict
+locations = []
+location_dic_file = open('../data/location_dict.csv')
+for line in location_dic_file:
+	x = line.split(';')
+	loc = x[2].strip()
+	locations.append(loc)
+location_dic_file.close()
 
-location = 'Ain Sinan'
-print 'Google:', lg.google_geocoding(location)
-#print lg.google_geocoding_from_scratch('City Center shopping mall')
-print 'Bing:', lg.bing_geocoding(location)
-print 'Nominatim', lg.nominatim_geocoding(location)
+cities_file = open('../data/qatar_cities_dict.txt')
+for line in cities_file:
+	loc = line.strip()
+	locations.append(loc)
+cities_file.close()
+
+geolocated_locations_file = open('../data/geolocated_locations.txt', 'w')
+for location in locations:
+	#print 'Google:', lg.google_geocoding(location)
+	#print lg.google_geocoding_from_scratch('City Center shopping mall')
+	#print 'Bing:', lg.bing_geocoding(location)
+	#print 'Nominatim', lg.nominatim_geocoding(location)
+	location_dict = dict()
+	location_dict['name'] = location
+	googleResult = lg.google_geocoding_from_scratch(location)
+	bingResult = lg.bing_geocoding(location)
+	nominatimResult = lg.nominatim_geocoding(location)
+
+	if googleResult is None:
+		googleResult = lg.format_None_result()
+	if bingResult is None:
+		bingResult = lg.format_None_result()
+	if nominatimResult is None:
+		nominatimResult = lg.format_None_result()
+
+	location_dict['coordinates'] = {'google':googleResult, 'bing': bingResult,'nominatim':nominatimResult}
+	#print location_dict
+	#print json.dumps(location_dict)
+	geolocated_locations_file.write(json.dumps(location_dict)+'\n')
+geolocated_locations_file.close()
