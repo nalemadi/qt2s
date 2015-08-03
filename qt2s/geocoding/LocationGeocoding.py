@@ -260,3 +260,11 @@ class LocationGeocoding:
 		else:
 			#TODO: invoke Google, Bing, and Nominatim geocoding.
 			pass
+
+
+if __name__ == '__main__':
+	GEOCODED_LOCATION_DICT_FILE = '../data/geolocated_locations.txt'
+	GOOGLE_KEY = '[REDACTED]'
+	BING_KEY = '[REDACTED]'
+	lg = LocationGeocoding(google_key=GOOGLE_KEY, bing_key=BING_KEY, country_code='QA', geocoded_location_file=GEOCODED_LOCATION_DICT_FILE)
+	print lg.geocoded_locations

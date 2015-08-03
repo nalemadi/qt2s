@@ -23,7 +23,7 @@ REDIS_DB = redis.Redis()
 
 KEYWORD_DICT_FILE = 'data/traffic_dict.csv'
 LOCATION_DICT_FILE = 'data/location_dict.csv'
-GEOCODED_LOCATION_DICT_FILE = 'data/location_dict.csv'
+GEOCODED_LOCATION_DICT_FILE = 'data/geolocated_locations.txt'
 SLANG_DICT_FILE = 'data/slang_dict.csv'
 CITIES_NAME = 'data/qatar_cities_dict.txt'
 
