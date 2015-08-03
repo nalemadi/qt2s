@@ -98,7 +98,8 @@ def extract_entities():
 		# TODO: check if the locations have been geocoded in the past before sending online requests.
 
 		bad_words = slang_detection.contains_bad_words(data['text'])
-		if len(locations) > 0:
+		# Remove a trivial false positive: Pearl Jam
+		if len(locations) > 0 and 'pearl jam' not in data['text'].lower():
 			data['traffic_locations'] = list(locations)
 			data['bad_words'] = list(bad_words)
 			data['contains_bad_words'] = True if len(bad_words) > 0 else False
