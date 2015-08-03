@@ -9,6 +9,7 @@ from TwitterCollector import TwitterCollector
 from TwitterClassifier import TwitterClassifier
 from TwitterLocationER import TwitterLocationER
 from SlangDetection import SlangDetection
+from geocoding.LocationGeocoding import LocationGeocoding
 from datetime import datetime
 
 
@@ -22,8 +23,12 @@ REDIS_DB = redis.Redis()
 
 KEYWORD_DICT_FILE = 'data/traffic_dict.csv'
 LOCATION_DICT_FILE = 'data/location_dict.csv'
+GEOCODED_LOCATION_DICT_FILE = 'data/location_dict.csv'
 SLANG_DICT_FILE = 'data/slang_dict.csv'
 CITIES_NAME = 'data/qatar_cities_dict.txt'
+
+GOOGLE_KEY = '[REDACTED]'
+BING_KEY = '[REDACTED]'
 
 
 # Initialize the logger
@@ -84,6 +89,7 @@ def extract_entities():
 
 	twitter_location_er = TwitterLocationER(location_dictionary_file=LOCATION_DICT_FILE, cities_name=CITIES_NAME)
 	slang_detection = SlangDetection(slang_dictionary_file=SLANG_DICT_FILE)
+	location_geocoding = LocationGeocoding(google_key=GOOGLE_KEY, bing_key=BING_KEY, country_code='QA', geocoded_location_file=GEOCODED_LOCATION_DICT_FILE)
 	logger.info("Starting LocationTagger. Will read from %s and write into %s", read_channel, write_channel)
 
 	while True:
@@ -100,7 +106,8 @@ def extract_entities():
 		bad_words = slang_detection.contains_bad_words(data['text'])
 		# Remove a trivial false positive: Pearl Jam
 		if len(locations) > 0 and 'pearl jam' not in data['text'].lower():
-			data['traffic_locations'] = list(locations)
+			geocoded_locations = [location_geocoding.geocode_location(location) for location in locations]
+			data['traffic_locations'] = geocoded_locations
 			data['bad_words'] = list(bad_words)
 			data['contains_bad_words'] = True if len(bad_words) > 0 else False
 			# Write to a new Redis channel: REDIS_NAMESPACE:REDIS_NAME_TRAFFIC_TWEETS

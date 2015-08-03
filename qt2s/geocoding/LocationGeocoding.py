@@ -13,10 +13,17 @@ logger = logging.getLogger('__name__')
 
 
 class LocationGeocoding:
-	def __init__(self, google_key=None, bing_key=None, country_code='QA'):
+	def __init__(self, google_key=None, bing_key=None, country_code='QA', geocoded_location_file=None):
 		self.google_key = google_key
 		self.bing_key = bing_key
 		self.country_code = country_code
+		self.geocoded_locations = dict()
+		with open(geocoded_location_file) as f:
+			for line in f:
+				location = json.loads(line)
+				self.geocoded_locations[location['name'].lower()] = location
+
+
 
 	def google_geocoding(self, location):
 		"""
@@ -196,47 +203,60 @@ class LocationGeocoding:
 			return None
 
 
-#TODO: @Sofiane Make sure we replace this key with a applications pecific one
-gkey = '[REDACTED]'
-bkey = '[REDACTED]'
-lg = LocationGeocoding(google_key=gkey, bing_key=bkey, country_code='QA')
+	def bash_geocoding(self):
+		""" Returns the different geocoordinates of a set of locations.
+		@author: Noora
+		:return: a file in which each line contains the geo coordinates of a given location.
+		"""
+		#TODO: @Sofiane Make sure we replace this key with a applications pecific one
+		gkey = '[REDACTED]'
+		bkey = '[REDACTED]'
+		lg = LocationGeocoding(google_key=gkey, bing_key=bkey, country_code='QA')
 
-# open location_dict
-locations = []
-location_dic_file = open('../data/location_dict.csv')
-for line in location_dic_file:
-	x = line.split(';')
-	loc = x[2].strip()
-	locations.append(loc)
-location_dic_file.close()
+		# open location_dict
+		locations = []
+		location_dic_file = open('../data/location_dict.csv')
+		for line in location_dic_file:
+			x = line.split(';')
+			loc = x[2].strip()
+			locations.append(loc)
+		location_dic_file.close()
 
-cities_file = open('../data/qatar_cities_dict.txt')
-for line in cities_file:
-	loc = line.strip()
-	locations.append(loc)
-cities_file.close()
+		cities_file = open('../data/qatar_cities_dict.txt')
+		for line in cities_file:
+			loc = line.strip()
+			locations.append(loc)
+		cities_file.close()
 
-geolocated_locations_file = open('../data/geolocated_locations.txt', 'w')
-for location in locations:
-	#print 'Google:', lg.google_geocoding(location)
-	#print lg.google_geocoding_from_scratch('City Center shopping mall')
-	#print 'Bing:', lg.bing_geocoding(location)
-	#print 'Nominatim', lg.nominatim_geocoding(location)
-	location_dict = dict()
-	location_dict['name'] = location
-	googleResult = lg.google_geocoding_from_scratch(location)
-	bingResult = lg.bing_geocoding(location)
-	nominatimResult = lg.nominatim_geocoding(location)
+		geolocated_locations_file = open('../data/geolocated_locations.txt', 'w')
+		for location in locations:
+			#print 'Google:', lg.google_geocoding(location)
+			#print lg.google_geocoding_from_scratch('City Center shopping mall')
+			#print 'Bing:', lg.bing_geocoding(location)
+			#print 'Nominatim', lg.nominatim_geocoding(location)
+			location_dict = dict()
+			location_dict['name'] = location
+			googleResult = lg.google_geocoding_from_scratch(location)
+			bingResult = lg.bing_geocoding(location)
+			nominatimResult = lg.nominatim_geocoding(location)
 
-	if googleResult is None:
-		googleResult = lg.format_None_result()
-	if bingResult is None:
-		bingResult = lg.format_None_result()
-	if nominatimResult is None:
-		nominatimResult = lg.format_None_result()
+			if googleResult is None:
+				googleResult = lg.format_None_result()
+			if bingResult is None:
+				bingResult = lg.format_None_result()
+			if nominatimResult is None:
+				nominatimResult = lg.format_None_result()
 
-	location_dict['coordinates'] = {'google':googleResult, 'bing': bingResult,'nominatim':nominatimResult}
-	#print location_dict
-	#print json.dumps(location_dict)
-	geolocated_locations_file.write(json.dumps(location_dict)+'\n')
-geolocated_locations_file.close()
+			location_dict['coordinates'] = {'google':googleResult, 'bing': bingResult,'nominatim':nominatimResult}
+			#print location_dict
+			#print json.dumps(location_dict)
+			geolocated_locations_file.write(json.dumps(location_dict)+'\n')
+		geolocated_locations_file.close()
+
+	def geocode_location(self, location):
+		location = location.lower()
+		if location in self.geocoded_locations.keys():
+			return self.geocoded_locations[location]
+		else:
+			#TODO: invoke Google, Bing, and Nominatim geocoding.
+			pass
