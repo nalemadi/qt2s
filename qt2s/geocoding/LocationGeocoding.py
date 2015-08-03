@@ -78,6 +78,7 @@ class LocationGeocoding:
 		return  self._format_bing_location(results[indx])
 
 	def nominatim_geocoding(self, location):
+		location += ' '+'Qatar'
 		basepath = "[REDACTED_URL]     "
 		params = {"addressdetails":1,"format":"json", "country":"QA", "q":location}
 		response = urllib2.urlopen(basepath+urllib.urlencode(params))
@@ -189,7 +190,8 @@ class LocationGeocoding:
 gkey = '[REDACTED]'
 bkey = '[REDACTED]'
 lg = LocationGeocoding(google_key=gkey, bing_key=bkey, country_code='QA')
-#print lg.google_geocoding('City Center shopping mall')
+location = 'Corniche street'
+print 'Google:', lg.google_geocoding(location)
 #print lg.google_geocoding_from_scratch('City Center shopping mall')
-#print lg.bing_geocoding('corniche')
-print lg.nominatim_geocoding('corniche street Qatar')
+print 'Bing:', lg.bing_geocoding(location)
+print 'Nominatim', lg.nominatim_geocoding(location)
