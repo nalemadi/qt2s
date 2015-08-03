@@ -42,3 +42,17 @@
  -------------
  - We are using multiprocessing module to run all parts of the project
  #TODO: Need to make sure the processes never fail. [--> run them as daemons?!]
+
+ Accounts:
+ ----------
+ Google:
+     - [REDACTED]
+     - [REDACTED]
+
+ Twitter:
+     - [REDACTED]
+     - [REDACTED]
+     - [REDACTED]
+     - [REDACTED]
+     - [REDACTED]
+ Bing: TBD
