@@ -36,7 +36,6 @@ tweet_fields = {
 	'is_about_traffic': fields.Boolean(attribute='is_about_traffic'),
 	'contains_traffic_locations': fields.Boolean(attribute='contains_traffic_locations', default=False),
 	'traffic_locations': fields.List(fields.String)
-	'location_geo_coordinate'
 }
 
 

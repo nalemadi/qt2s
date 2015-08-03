@@ -3,7 +3,7 @@ __author__ = 'sofiane'
 from flask import Flask
 from flask_restful import Api
 
-from Qt2sApi.resources.traffictweets import TrafficTweets
+from resources.traffictweets import TrafficTweets
 
 app = Flask(__name__)
 api = Api(app)
