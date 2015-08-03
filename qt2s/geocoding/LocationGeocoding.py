@@ -190,7 +190,16 @@ class LocationGeocoding:
 gkey = '[REDACTED]'
 bkey = '[REDACTED]'
 lg = LocationGeocoding(google_key=gkey, bing_key=bkey, country_code='QA')
-location = 'Corniche street'
+
+loc_format = {'name': 'Doha',
+	   'coordinates':{
+		   'google': {'lat': 12, 'lng':10, 'formatted_address':'Al Dawha'},
+		   'bing': {'lat': 12, 'lng':10, 'formatted_address':'Al Dawha'},
+		   'nominatim': {'lat': 12, 'lng':10, 'formatted_address':'Al Dawha'}
+	   }
+	}
+
+location = 'Ain Sinan'
 print 'Google:', lg.google_geocoding(location)
 #print lg.google_geocoding_from_scratch('City Center shopping mall')
 print 'Bing:', lg.bing_geocoding(location)
