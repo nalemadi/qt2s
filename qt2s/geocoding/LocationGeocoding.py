@@ -77,6 +77,25 @@ class LocationGeocoding:
 			return None
 		return  self._format_bing_location(results[indx])
 
+	def nominatim_geocoding(self, location):
+		basepath = "[REDACTED_URL]     "
+		params = {"addressdetails":1,"format":"json", "country":"QA", "q":location}
+		response = urllib2.urlopen(basepath+urllib.urlencode(params))
+		results = response.read()
+		try:
+			results = json.loads(results)
+			#print results
+			indx = -1
+			for i, result in enumerate(results):
+				if result['address']['country_code'] == 'qa':
+					indx = i
+					break
+			if indx == -1:
+				return None
+			return  self._format_nominatim_format(results[indx])
+			#print '%s\t%s' % (location.strip(), results[0]['address']['country_code'])
+		except:
+			print '%s\t%s' % (location.strip(), 'None')
 
 	def google_geocoding_from_scratch(self, location):
 		basepath = 'https://maps.googleapis.com/maps/api/geocode/json?'
@@ -129,6 +148,18 @@ class LocationGeocoding:
 		location['lng'] = b_location['point']['coordinates'][1]
 		return location
 
+	def _format_nominatim_format(self, n_location):
+		if 'display_name' not in n_location.keys():
+			return None
+		if 'lon' not in n_location.keys():
+			return None
+
+		location = dict()
+		location['formatted_address'] = n_location['display_name']
+		location['lat'] = n_location['lat']
+		location['lng'] = n_location['lon']
+		return location
+
 	@staticmethod
 	def run_request(url, data=None, headers=None):
 		"""
@@ -160,4 +191,5 @@ bkey = '[REDACTED]'
 lg = LocationGeocoding(google_key=gkey, bing_key=bkey, country_code='QA')
 #print lg.google_geocoding('City Center shopping mall')
 #print lg.google_geocoding_from_scratch('City Center shopping mall')
-print lg.bing_geocoding('corniche')
+#print lg.bing_geocoding('corniche')
+print lg.nominatim_geocoding('corniche street Qatar')
