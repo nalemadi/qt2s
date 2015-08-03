@@ -106,7 +106,9 @@ def extract_entities():
 			REDIS_DB.rpush(write_channel, json.dumps(data))
 			logger.info("New located tweets:%s\n Locations: %s", data['text'], list(locations))
 		else:
+			# add the tweet to the end, and make sure the list has at most 100K tweets
 			REDIS_DB.rpush(non_located_channel, json.dumps(data))
+			REDIS_DB.ltrim(non_located_channel, -100000, -1)
 
 if __name__ == '__main__':
 	logger.info('\n\n=================\n\nNEW INSTANCE\n-------------\n-->Started on: %s\n',datetime.now())

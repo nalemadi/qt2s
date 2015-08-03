@@ -45,16 +45,16 @@ class TrafficTweets(Resource):
 		self.parser.add_argument('count', type=int, help='count cannot be converted')
 		self.parser.add_argument('timestamp')
 		self.parser.add_argument('languages', action='append')
-		self.parser.add_argument('region')
+		self.parser.add_argument('areas')
 
 	@marshal_with(tweet_fields)
 	def get(self):
 		args = self.parser.parse_args()
 		count = args['count']
-		tweets = self.get_tweets(count)
+		tweets = self._get_tweets(count)
 		return tweets, 200
 
-	def get_tweets(self, count):
+	def _get_tweets(self, count):
 		""" retrieve a list of tweets
 		:rtype : list of tweets
 		"""
