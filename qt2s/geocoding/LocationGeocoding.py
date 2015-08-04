@@ -26,6 +26,8 @@ class LocationGeocoding:
 		else:
 			with open(geocoded_location_file) as f:
 				for line in f:
+					if len(line.strip()) == 0:
+						continue
 					location = json.loads(line)
 					self.geocoded_locations[location['name'].lower()] = location
 
@@ -260,12 +262,9 @@ class LocationGeocoding:
 			return geocodes
 
 	def persist_geocodes(self, geocodes):
-		# append to the geocoded file
-		print 'start persist'
 		f = open(self.geocoded_location_files, 'a')
 		f.write(json.dumps(geocodes)+'\n')
 		f.close()
-		print 'end persist'
 
 	def request_online_geocodes(self, location):
 		""" Returns the different geocoordinates for one location.
