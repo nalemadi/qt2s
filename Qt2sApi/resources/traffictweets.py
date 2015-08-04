@@ -1,6 +1,10 @@
 __author__ = 'sofiane'
+
+import json
+import redis
+import yaml
+
 from flask_restful import fields, Resource, marshal_with, reqparse
-import json, redis
 
 
 class user_id_str(fields.Raw):
@@ -63,6 +67,14 @@ class TrafficTweets(Resource):
 		self.parser.add_argument('timestamp')
 		self.parser.add_argument('languages', action='append')
 		self.parser.add_argument('areas')
+		with open("resources/apiconfig.yml",'r') as f:
+			cfg = yaml.load(f)
+		redis_host = cfg['redis']['host']
+		redis_port = cfg['redis']['port']
+		redis_hostname = cfg['redis']['hostname']
+		redis_located_channel = cfg['redis']['channels']['located_tweets']
+		self.redis_db = redis.Redis(host=redis_host, port=redis_port)
+		self.redis_located_tweets_channel = '{0}:{1}'.format(redis_hostname,redis_located_channel)
 
 	@marshal_with(tweet_fields)
 	def get(self):
@@ -75,8 +87,5 @@ class TrafficTweets(Resource):
 		""" retrieve a list of tweets
 		:rtype : list of tweets
 		"""
-		channel = 'QMIC:located_tweets'
-		redis_db = redis.Redis()
-		tweets = [json.loads(tw) for tw in redis_db.lrange(channel, -count, -1)]
-		# tweets = [json.loads(tw) for tw in open('../data/tweets_sample.txt').read().split('\n')]
+		tweets = [json.loads(tw) for tw in self.redis_db.lrange(self.redis_located_tweets_channel, -count, -1)]
 		return tweets

@@ -4,6 +4,7 @@ import redis
 import json
 import logging
 import multiprocessing
+import yaml
 
 from TwitterCollector import TwitterCollector
 from TwitterClassifier import TwitterClassifier
@@ -13,12 +14,15 @@ from geocoding.LocationGeocoding import LocationGeocoding
 from datetime import datetime
 
 
-REDIS_NAMESPACE = 'QMIC'
-REDIS_NAME_RAW_TWEETS = 'raw_tweets'
-REDIS_NAME_TRAFFIC_TWEETS = 'traffic_tweets'
-REDIS_NAME_NON_LOCATED_TWEETS = 'non_traffic_tweets'
-REDIS_NAME_LOCATED_TWEETS = 'located_tweets'
-REDIS_DB = redis.Redis()
+with open("resources/qt2sconfig.yml", 'r') as f:
+	cfg = yaml.load(f)
+
+REDIS_NAMESPACE = cfg['redis']['hostname']
+REDIS_NAME_RAW_TWEETS = cfg['redis']['channels']['raw_tweets']
+REDIS_NAME_TRAFFIC_TWEETS = cfg['redis']['channels']['traffic_tweets']
+REDIS_NAME_NON_LOCATED_TWEETS = cfg['redis']['channels']['non_traffic_tweets']
+REDIS_NAME_LOCATED_TWEETS = cfg['redis']['channels']['located_tweets']
+REDIS_DB = redis.Redis(host=cfg['redis']['host'], port=cfg['redis']['port'])
 
 
 KEYWORD_DICT_FILE = 'data/traffic_dict.csv'
@@ -27,18 +31,18 @@ GEOCODED_LOCATION_DICT_FILE = 'data/geolocated_locations.txt'
 SLANG_DICT_FILE = 'data/slang_dict.csv'
 CITIES_NAME = 'data/qatar_cities_dict.txt'
 
-GOOGLE_KEY = '[REDACTED]'
-BING_KEY = '[REDACTED]'
+GOOGLE_KEY = cfg['online_keys']['google']
+BING_KEY = cfg['online_keys']['bing']
 
+LOG_FILE_LOCATION = cfg['logfile']
 
 # Initialize the logger
 # TODO: turn logging level to INFO before deploying into production.
-logging.basicConfig(filename='/tmp/qmic.log',
+logging.basicConfig(filename=LOG_FILE_LOCATION,
 			format='%(levelname)s: %(module)s: %(funcName)s: %(message)s',
 			level=logging.INFO)
 logger = logging.getLogger('__name__')
 
-# just for testing
 
 def collect_tweets():
 	"""
