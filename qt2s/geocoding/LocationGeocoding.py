@@ -16,7 +16,7 @@ class LocationGeocoding:
 		"""
 		:rtype :
 		"""
-
+		self.geocoded_location_files = geocoded_location_file
 		self.google_key = google_key
 		self.bing_key = bing_key
 		self.country_code = country_code
@@ -260,8 +260,12 @@ class LocationGeocoding:
 			return geocodes
 
 	def persist_geocodes(self, geocodes):
-		# TODO: append to the file.
-		pass
+		# append to the geocoded file
+		print 'start persist'
+		f = open(self.geocoded_location_files, 'a')
+		f.write(json.dumps(geocodes)+'\n')
+		f.close()
+		print 'end persist'
 
 	def request_online_geocodes(self, location):
 		""" Returns the different geocoordinates for one location.
@@ -292,4 +296,4 @@ if __name__ == '__main__':
 	lg = LocationGeocoding(google_key=GOOGLE_KEY, bing_key=BING_KEY, country_code='QA', geocoded_location_file=GEOCODED_LOCATION_DICT_FILE)
 
 	#print lg.request_online_geocodes('Landmark')
-	print lg.geocode_location('landmark')
+	print lg.geocode_location('AlEmadi Hospital')
