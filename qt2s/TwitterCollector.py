@@ -28,6 +28,12 @@ class TwitterCollector(StreamListener):
 		# The consumer key and secret will be generated for you after
 
 		# TODO: generate a new keys with a customized/dedicated Twitter account for QMIC Project
+		# self.consumer_key = '[REDACTED]'
+		# self.consumer_secret = '[REDACTED]'
+		# self.access_token = '[REDACTED]'
+		# self.access_token_secret = '[REDACTED]'
+
+		# Keys generated from QT2S_QCRI Twitter account.
 		self.consumer_key = '[REDACTED]'
 		self.consumer_secret = '[REDACTED]'
 		self.access_token = '[REDACTED]'

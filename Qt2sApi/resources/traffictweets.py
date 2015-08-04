@@ -23,6 +23,23 @@ class user_url_picture(fields.Raw):
 		return obj['user']['profile_image_url']
 
 
+location_fields = {
+	'formatted_address': fields.String,
+	'lat': fields.Float,
+	'lng': fields.Float
+}
+
+all_coordinates = {
+	'google': fields.Nested(location_fields),
+	'bing': fields.Nested(location_fields),
+	'nominatim': fields.Nested(location_fields)
+}
+
+location_geocodes_fields = {
+	'name': fields.String,
+	'coordinates': fields.Nested(all_coordinates)
+}
+
 tweet_fields = {
 	'tweet_id': fields.String(attribute='id_str'),
 	'tweet_text': fields.String(attribute='text'),
@@ -35,7 +52,7 @@ tweet_fields = {
 	'bad_words': fields.List(fields.String),
 	'is_about_traffic': fields.Boolean(attribute='is_about_traffic'),
 	'contains_traffic_locations': fields.Boolean(attribute='contains_traffic_locations', default=False),
-	'traffic_locations': fields.List(fields.String)
+	'traffic_locations': fields.List(fields.Nested(location_geocodes_fields), default=None)
 }
 
 

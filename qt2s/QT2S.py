@@ -100,13 +100,12 @@ def extract_entities():
 		data = data[1]
 		data = json.loads(data)
 		locations = twitter_location_er.find_locations(data['text'])
-		# TODO: geo code the locations.
-		# TODO: check if the locations have been geocoded in the past before sending online requests.
-
 		bad_words = slang_detection.contains_bad_words(data['text'])
+
 		# Remove a trivial false positive: Pearl Jam
 		if len(locations) > 0 and 'pearl jam' not in data['text'].lower():
 			geocoded_locations = [location_geocoding.geocode_location(location) for location in locations]
+			data['contains_traffic_locations'] = True
 			data['traffic_locations'] = geocoded_locations
 			data['bad_words'] = list(bad_words)
 			data['contains_bad_words'] = True if len(bad_words) > 0 else False

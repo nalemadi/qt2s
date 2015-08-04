@@ -14,16 +14,21 @@ logger = logging.getLogger('__name__')
 
 class LocationGeocoding:
 	def __init__(self, google_key=None, bing_key=None, country_code='QA', geocoded_location_file=None):
+		"""
+		:rtype :
+		"""
+
 		self.google_key = google_key
 		self.bing_key = bing_key
 		self.country_code = country_code
 		self.geocoded_locations = dict()
-		with open(geocoded_location_file) as f:
-			for line in f:
-				location = json.loads(line)
-				self.geocoded_locations[location['name'].lower()] = location
-
-
+		if geocoded_location_file is None:
+			print 'None file'
+		else:
+			with open(geocoded_location_file) as f:
+				for line in f:
+					location = json.loads(line)
+					self.geocoded_locations[location['name'].lower()] = location
 
 	def google_geocoding(self, location):
 		"""
@@ -208,10 +213,6 @@ class LocationGeocoding:
 		@author: Noora
 		:return: a file in which each line contains the geo coordinates of a given location.
 		"""
-		#TODO: @Sofiane Make sure we replace this key with a applications pecific one
-		gkey = '[REDACTED]'
-		bkey = '[REDACTED]'
-		lg = LocationGeocoding(google_key=gkey, bing_key=bkey, country_code='QA')
 
 		# open location_dict
 		locations = []
@@ -236,35 +237,76 @@ class LocationGeocoding:
 			#print 'Nominatim', lg.nominatim_geocoding(location)
 			location_dict = dict()
 			location_dict['name'] = location
-			googleResult = lg.google_geocoding_from_scratch(location)
-			bingResult = lg.bing_geocoding(location)
-			nominatimResult = lg.nominatim_geocoding(location)
+			googleResult = self.google_geocoding_from_scratch(location)
+			bingResult = self.bing_geocoding(location)
+			nominatimResult = self.nominatim_geocoding(location)
 
 			if googleResult is None:
-				googleResult = lg.format_None_result()
+				googleResult = self.format_None_result()
 			if bingResult is None:
-				bingResult = lg.format_None_result()
+				bingResult = self.format_None_result()
 			if nominatimResult is None:
-				nominatimResult = lg.format_None_result()
+				nominatimResult = self.format_None_result()
 
-			location_dict['coordinates'] = {'google':googleResult, 'bing': bingResult,'nominatim':nominatimResult}
+			location_dict['coordinates'] = {'google': googleResult, 'bing': bingResult,'nominatim': nominatimResult}
 			#print location_dict
 			#print json.dumps(location_dict)
 			geolocated_locations_file.write(json.dumps(location_dict)+'\n')
 		geolocated_locations_file.close()
 
 	def geocode_location(self, location):
+		"""
+		Returns geocodes (google, bing, nominatim) of a given location.
+		1. check if location has been resolved in the past, and return its geocodes
+		2. Else, request online geocoding and save to file.
+		:param location: a location name, String.
+		:return: Json object with all geo-codes of the location.
+		"""
 		location = location.lower()
 		if location in self.geocoded_locations.keys():
 			return self.geocoded_locations[location]
 		else:
-			#TODO: invoke Google, Bing, and Nominatim geocoding.
-			pass
+			geocodes = self.request_online_geocodes(location)
+			# add to the list of geocoded locations
+			self.geocoded_locations[location.lower()] = geocodes
+			# write into the file
+			self.persist_geocodes(geocodes)
+			return geocodes
+
+	def persist_geocodes(self, geocodes):
+		# TODO: append to the file.
+		pass
+
+	def request_online_geocodes(self, location):
+		""" Returns the different geocoordinates for one location.
+		@author: Sofiane
+		:return: a json object with all geocoding information.
+		"""
+
+		location_dict = dict()
+		location_dict['name'] = location
+		googleResult = self.google_geocoding_from_scratch(location)
+		bingResult = self.bing_geocoding(location)
+		nominatimResult = self.nominatim_geocoding(location)
+
+		if googleResult is None:
+			googleResult = self.format_None_result()
+		if bingResult is None:
+			bingResult = self.format_None_result()
+		if nominatimResult is None:
+			nominatimResult = self.format_None_result()
+
+		location_dict['coordinates'] = {'google': googleResult, 'bing': bingResult,
+										'nominatim': nominatimResult}
+		return location_dict
 
 
 if __name__ == '__main__':
 	GEOCODED_LOCATION_DICT_FILE = '../data/geolocated_locations.txt'
 	GOOGLE_KEY = '[REDACTED]'
 	BING_KEY = '[REDACTED]'
+	GEOCODED_LOCATION_DICT_FILE = '../data/geolocated_locations.txt'
 	lg = LocationGeocoding(google_key=GOOGLE_KEY, bing_key=BING_KEY, country_code='QA', geocoded_location_file=GEOCODED_LOCATION_DICT_FILE)
-	print lg.geocoded_locations
+
+	#print lg.request_online_geocodes('Landmark')
+	print lg.geocode_location('landmark')
