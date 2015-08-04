@@ -5,7 +5,6 @@ from urllib2 import HTTPError
 import json
 import logging
 import googlemaps
-import os
 from googlemaps.exceptions import ApiError, TransportError, Timeout, HTTPError
 
 
@@ -176,13 +175,6 @@ class LocationGeocoding:
 		location['lng'] = n_location['lon']
 		return location
 
-	def format_None_result(self):
-		location = dict()
-		location['formatted_address'] = None
-		location['lat'] = None
-		location['lng'] = None
-		return location
-
 	@staticmethod
 	def run_request(url, data=None, headers=None):
 		"""
@@ -231,24 +223,18 @@ class LocationGeocoding:
 
 		geolocated_locations_file = open('../data/geolocated_locations.txt', 'w')
 		for location in locations:
-			#print 'Google:', lg.google_geocoding(location)
-			#print lg.google_geocoding_from_scratch('City Center shopping mall')
-			#print 'Bing:', lg.bing_geocoding(location)
-			#print 'Nominatim', lg.nominatim_geocoding(location)
 			location_dict = dict()
 			location_dict['name'] = location
 			googleResult = self.google_geocoding_from_scratch(location)
 			bingResult = self.bing_geocoding(location)
 			nominatimResult = self.nominatim_geocoding(location)
 
-			if googleResult is None:
-				googleResult = self.format_None_result()
-			if bingResult is None:
-				bingResult = self.format_None_result()
-			if nominatimResult is None:
-				nominatimResult = self.format_None_result()
+			if bingResult is None and googleResult is None and nominatimResult is None:
+				coordinatesResult = None
+			else:
+				coordinatesResult = {'google': googleResult, 'bing': bingResult,'nominatim': nominatimResult}
 
-			location_dict['coordinates'] = {'google': googleResult, 'bing': bingResult,'nominatim': nominatimResult}
+			location_dict['coordinates'] = coordinatesResult
 			#print location_dict
 			#print json.dumps(location_dict)
 			geolocated_locations_file.write(json.dumps(location_dict)+'\n')
@@ -289,15 +275,12 @@ class LocationGeocoding:
 		bingResult = self.bing_geocoding(location)
 		nominatimResult = self.nominatim_geocoding(location)
 
-		if googleResult is None:
-			googleResult = self.format_None_result()
-		if bingResult is None:
-			bingResult = self.format_None_result()
-		if nominatimResult is None:
-			nominatimResult = self.format_None_result()
+		if bingResult is None and googleResult is None and nominatimResult is None:
+			coordinatesResult = None
+		else:
+			coordinatesResult = {'google': googleResult, 'bing': bingResult, 'nominatim': nominatimResult}
 
-		location_dict['coordinates'] = {'google': googleResult, 'bing': bingResult,
-										'nominatim': nominatimResult}
+		location_dict['coordinates'] = coordinatesResult
 		return location_dict
 
 
