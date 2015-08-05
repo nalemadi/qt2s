@@ -286,6 +286,28 @@ class LocationGeocoding:
 		location_dict['coordinates'] = coordinatesResult
 		return location_dict
 
+	def is_tweet_from_qatar(self, tweet):
+		if 'coordinates' not in tweet.keys() and 'user' not in tweet.keys():
+				return False
+
+		if tweet['coordinates'] is None:
+			if tweet['user'] is None or tweet['user']['location'] is None:
+				return False
+			elif 'qatar' in tweet['user']['location'].lower() or 'doha' in tweet['user']['location'].lower():
+				return True
+		else:
+			lat = tweet['coordinates']['coordinates'][0]
+			lng = tweet['coordinates']['coordinates'][1]
+			point = (lat, lng)
+			# Qatar boundingBox 50.7048,24.4708,51.7371,26.2057
+			lat_max = 26.2057
+			lat_min = 24.4708
+			lng_max = 51.7371
+			lng_min = 50.7048
+			if lat_min <= lat <= lat_max and lng_min <= lng <= lng_max:
+				return True
+			else:
+				return False
 
 if __name__ == '__main__':
 	GEOCODED_LOCATION_DICT_FILE = '../data/geolocated_locations.txt'
@@ -295,4 +317,13 @@ if __name__ == '__main__':
 	lg = LocationGeocoding(google_key=GOOGLE_KEY, bing_key=BING_KEY, country_code='QA', geocoded_location_file=GEOCODED_LOCATION_DICT_FILE)
 
 	#print lg.request_online_geocodes('Landmark')
-	print lg.geocode_location('AlEmadi Hospital')
+	#print lg.geocode_location('AlEmadi Hospital')
+
+	tweet = dict()
+	#tweet['coordinates'] = {'coordinates':[25.20035,51.36608]}
+	#tweet['coordinates'] = None
+	#tweet['user'] = {'location':'dafna, Qatar'}
+	#tweet['user'] = {'location': None}
+	#tweet['user'] = None
+	#print tweet
+	#print lg.is_tweet_from_qatar(tweet)
