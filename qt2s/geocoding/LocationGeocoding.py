@@ -1,3 +1,6 @@
+#!/usr/bin/python
+# -*- coding: UTF-8 -*-
+
 __author__ = 'sofiane'
 import urllib
 import urllib2
@@ -6,6 +9,7 @@ import json
 import logging
 import googlemaps
 from googlemaps.exceptions import ApiError, TransportError, Timeout, HTTPError
+from qt2s.resources.resources import clean_text
 
 
 logger = logging.getLogger('__name__')
@@ -78,7 +82,7 @@ class LocationGeocoding:
 		estimatedTotal = obj['resourceSets'][0]['estimatedTotal']
 		if estimatedTotal == 0:
 			return None
-		results = estimatedTotal = obj['resourceSets'][0]['resources']
+		results = obj['resourceSets'][0]['resources']
 		if len(results) == 0:
 			return None
 		indx = -1
@@ -293,12 +297,20 @@ class LocationGeocoding:
 		if tweet['coordinates'] is None:
 			if tweet['user'] is None or tweet['user']['location'] is None:
 				return False
-			elif 'qatar' in tweet['user']['location'].lower() or 'doha' in tweet['user']['location'].lower():
-				return True
+			else:
+				in_qatar = False
+				qatar_locations = self.get_qatar_locations()
+				user_location = tweet['user']['location'].lower()
+				user_location = clean_text(user_location)
+				user_locations = user_location.split()
+				for usr_location in user_locations:
+					if usr_location in qatar_locations:
+						in_qatar = True
+						break
+				return in_qatar
 		else:
 			lat = tweet['coordinates']['coordinates'][0]
 			lng = tweet['coordinates']['coordinates'][1]
-			point = (lat, lng)
 			# Qatar boundingBox 50.7048,24.4708,51.7371,26.2057
 			lat_max = 26.2057
 			lat_min = 24.4708
@@ -308,6 +320,16 @@ class LocationGeocoding:
 				return True
 			else:
 				return False
+
+	def get_qatar_locations(self):
+		qatar_locations = open('../data/qatar_locations.txt')
+		locations = []
+		for qatar_location in qatar_locations:
+			qatar_location = qatar_location.strip()
+			qatar_location = qatar_location.lower()
+			locations.append(qatar_location)
+		qatar_locations.close()
+		return locations
 
 if __name__ == '__main__':
 	GEOCODED_LOCATION_DICT_FILE = '../data/geolocated_locations.txt'
@@ -321,9 +343,17 @@ if __name__ == '__main__':
 
 	tweet = dict()
 	#tweet['coordinates'] = {'coordinates':[25.20035,51.36608]}
-	#tweet['coordinates'] = None
-	#tweet['user'] = {'location':'dafna, Qatar'}
+	tweet['coordinates'] = None
+	tweet['user'] = {'location':'Doha,test?'}
+	#tweet['user'] = {'location':'دفنة'}
+
 	#tweet['user'] = {'location': None}
 	#tweet['user'] = None
 	#print tweet
-	#print lg.is_tweet_from_qatar(tweet)
+	print lg.is_tweet_from_qatar(tweet)
+
+	text = 'قطر'.decode('utf8')
+	print text, type(text)
+
+	text = u'قطر'
+	print text, type(text)
