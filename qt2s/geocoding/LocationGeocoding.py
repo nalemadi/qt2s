@@ -8,7 +8,7 @@ import json
 import logging
 import googlemaps
 from googlemaps.exceptions import ApiError, TransportError, Timeout, HTTPError
-from qt2s.resources.resources import clean_text
+from resources.resources import clean_text
 
 logger = logging.getLogger('__name__')
 
