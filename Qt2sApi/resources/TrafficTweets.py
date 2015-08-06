@@ -68,13 +68,12 @@ tweet_fields = {
 	'user_name': user_name,
 	'user_screen_name': user_screen_name,
 	'user_url_picture': user_url_picture,
-	'is_from_qatar': fields.Boolean(default=False),
+	# 'is_from_qatar': fields.Boolean(default=False),
 	'contains_bad_words': fields.Boolean(default=False),
 	'bad_words': fields.List(fields.String),
 	'is_about_traffic': fields.Boolean(attribute='is_about_traffic'),
 	'contains_traffic_locations': fields.Boolean(attribute='contains_traffic_locations', default=False),
 	'traffic_locations': geocoded_locations
-	# 'traffic_locations': fields.List(fields.Nested(location_geocodes_fields), default=None)
 }
 
 
