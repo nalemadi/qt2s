@@ -4,7 +4,6 @@
 __author__ = 'sofiane'
 import urllib
 import urllib2
-from urllib2 import HTTPError
 import json
 import logging
 import googlemaps
@@ -16,9 +15,6 @@ logger = logging.getLogger('__name__')
 
 class LocationGeocoding:
 	def __init__(self, google_key=None, bing_key=None, country_code='QA', geocoded_location_file=None):
-		"""
-		:rtype :
-		"""
 		self.geocoded_location_files = geocoded_location_file
 		self.google_key = google_key
 		self.bing_key = bing_key
@@ -204,7 +200,6 @@ class LocationGeocoding:
 			logger.error('%s: %s - Needs to generate new tokens', e.code, e.reason)
 			return None
 
-
 	def bash_geocoding(self):
 		""" Returns the different geocoordinates of a set of locations.
 		@author: Noora
@@ -290,24 +285,17 @@ class LocationGeocoding:
 		return location_dict
 
 	def is_tweet_from_qatar(self, tweet):
+		""" Checks whether a tweet is from Qatar or not. A tweet is considered from Qatar if
+		and only if: it has geo-coordinates inside Qatar, or the user has the name of
+		a Qatari location in the location attribute of his profile.
+		Created by Noora, Edited by Sofiane
+		:param tweet: Tweet as a Json object.
+		:return: Boolean
+		"""
 		if 'coordinates' not in tweet.keys() and 'user' not in tweet.keys():
 				return False
 
-		if tweet['coordinates'] is None:
-			if tweet['user'] is None or tweet['user']['location'] is None:
-				return False
-			else:
-				in_qatar = False
-				qatar_locations = self.get_qatar_locations()
-				user_location = tweet['user']['location'].lower()
-				user_location = clean_text(user_location)
-				user_locations = user_location.split()
-				for usr_location in user_locations:
-					if usr_location in qatar_locations:
-						in_qatar = True
-						break
-				return in_qatar
-		else:
+		if tweet['coordinates'] is not None:
 			lat = tweet['coordinates']['coordinates'][0]
 			lng = tweet['coordinates']['coordinates'][1]
 			# Qatar boundingBox 50.7048,24.4708,51.7371,26.2057
@@ -319,15 +307,22 @@ class LocationGeocoding:
 				return True
 			else:
 				return False
+		if tweet['user']['location'] is None:
+			return False
+		else:
+			qatar_locations = self.get_qatar_locations()
+			user_location = clean_text(tweet['user']['location'].lower())
+			user_locations = user_location.split()
+			for usr_location in user_locations:
+				if usr_location in qatar_locations:
+					return True
+			return False
 
-	def get_qatar_locations(self):
-		qatar_locations = open('../data/qatar_locations.txt')
-		locations = []
-		for qatar_location in qatar_locations:
-			qatar_location = qatar_location.strip()
-			qatar_location = qatar_location.lower()
-			locations.append(qatar_location)
-		qatar_locations.close()
+
+	@staticmethod
+	def get_qatar_locations():
+		with open('../data/qatar_locations.txt') as f:
+			locations = [loc.strip().lower() for loc in f.read().strip().split('\n')]
 		return locations
 
 if __name__ == '__main__':

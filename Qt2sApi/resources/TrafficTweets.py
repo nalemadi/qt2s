@@ -68,6 +68,7 @@ tweet_fields = {
 	'user_name': user_name,
 	'user_screen_name': user_screen_name,
 	'user_url_picture': user_url_picture,
+	'is_from_qatar': fields.Boolean(default=False),
 	'contains_bad_words': fields.Boolean(default=False),
 	'bad_words': fields.List(fields.String),
 	'is_about_traffic': fields.Boolean(attribute='is_about_traffic'),
@@ -80,7 +81,7 @@ tweet_fields = {
 class TrafficTweets(Resource):
 	def __init__(self):
 		self.parser = reqparse.RequestParser()
-		self.parser.add_argument('count', type=int, help='count cannot be converted')
+		self.parser.add_argument('count', type=int, default=50, help='count cannot be converted')
 		self.parser.add_argument('key', type=str, required=True, help='API Key')
 		self.parser.add_argument('timestamp')
 		self.parser.add_argument('languages', action='append')
