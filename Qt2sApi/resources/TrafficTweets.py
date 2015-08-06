@@ -4,7 +4,8 @@ import json
 import redis
 import yaml
 
-from flask_restful import fields, Resource, marshal_with, reqparse
+from flask_restful import fields, Resource, marshal_with, reqparse, abort
+from Qt2sApi.common.models import Client
 
 
 class user_id_str(fields.Raw):
@@ -80,6 +81,7 @@ class TrafficTweets(Resource):
 	def __init__(self):
 		self.parser = reqparse.RequestParser()
 		self.parser.add_argument('count', type=int, help='count cannot be converted')
+		self.parser.add_argument('key', type=str, required=True, help='API Key')
 		self.parser.add_argument('timestamp')
 		self.parser.add_argument('languages', action='append')
 		self.parser.add_argument('areas')
@@ -96,6 +98,9 @@ class TrafficTweets(Resource):
 	def get(self):
 		args = self.parser.parse_args()
 		count = args['count']
+		key = args['key']
+		if not self.verify_key(key):
+			abort(401, message="Unauthorized user")
 		tweets = self._get_tweets(count)
 		return tweets, 200
 
@@ -105,3 +110,13 @@ class TrafficTweets(Resource):
 		"""
 		tweets = [json.loads(tw) for tw in self.redis_db.lrange(self.redis_located_tweets_channel, -count, -1)]
 		return tweets
+
+	@staticmethod
+	def verify_key(key):
+		""" Checks if the key exists in the database.
+		:param key: the api key supplied by the user
+		:return: True if key is valid, False otherwise.
+		"""
+		if not Client.query.filter_by(key=key).first():
+			return False
+		return True
