@@ -1,8 +1,8 @@
 __author__ = 'sofiane'
 
 from flask_restful import Resource, abort, reqparse
-from Qt2sApi.common.database import db
-from Qt2sApi.common.models import Client
+from common.database import db
+from common.models import Client
 
 
 class GenerateKey(Resource):

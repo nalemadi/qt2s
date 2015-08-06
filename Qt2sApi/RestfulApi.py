@@ -6,7 +6,7 @@ from flask import Flask
 from flask_restful import Api
 from resources.TrafficTweets import TrafficTweets
 from resources.GenerateKey import GenerateKey
-from Qt2sApi.common.database import db
+from common.database import db
 
 
 app = Flask(__name__)
