@@ -321,8 +321,8 @@ class LocationGeocoding:
 
 	@staticmethod
 	def get_qatar_locations():
-		with open('../data/qatar_locations.txt') as f:
-			locations = [loc.strip().lower() for loc in f.read().strip().split('\n')]
+		with open('data/qatar_locations.txt') as f:
+			locations = [loc.strip().lower().decode('utf-8') for loc in f.read().strip().split('\n')]
 		return locations
 
 if __name__ == '__main__':
