@@ -94,16 +94,19 @@ class TrafficTweets(Resource):
 		self.redis_db = redis.Redis(host=redis_host, port=redis_port)
 		self.redis_located_tweets_channel = '{0}:{1}'.format(redis_hostname,redis_located_channel)
 
-	@marshal_with(tweet_fields)
 	def get(self):
 		args = self.parser.parse_args()
 		count = args['count']
 		key = args['key']
-		if not self.verify_key(key):
-			abort(401, message="Unauthorized user")
+		#if not self.verify_key(key):
+		#	abort(401, message="Unauthorized user")
 		tweets = self._get_tweets(count)
-		return tweets, 200
+		output = dict()
+		output['res'] = tweets
+		output['nb_tweets'] = len(tweets)
+		return output, 200
 
+	@marshal_with(tweet_fields)
 	def _get_tweets(self, count):
 		""" retrieve a list of tweets
 		:rtype : list of tweets
