@@ -21,6 +21,7 @@ class SlangDetection:
 		:param text: body of the tweet
 		:return: list of bad words found in the input text
 		"""
+		text = text.lower()
 		text = [w for s in sent_tokenize(text) for w in word_tokenize(s) if w not in string.punctuation]
 		found_bad_words = [w for w in text if w in self.bad_words]
 		return set(found_bad_words)
