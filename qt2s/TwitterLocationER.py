@@ -4,24 +4,24 @@ __author__ = 'sofiane'
 import logging
 
 from resources.resources import clean_text
-
+import json
 
 logger = logging.getLogger('__name__')
 
 
 class TwitterLocationER:
-	def __init__(self, location_dictionary_file=None, cities_name=None):
+	def __init__(self, location_dictionary_file=None):
 		if location_dictionary_file is None:
 			logger.error("You should provide a path to the location dictionary file")
 			raise Exception("Error: You should provide a path to the location dictionary file")
-
+		locations = []
 		with open(location_dictionary_file) as f:
-			locations = [location.split(';')[2].lower() for location in f.read().split('\n')[:-1]]
-
+			for line in f:
+				if len(line.strip()) == 0:
+					continue
+				location = json.loads(line)
+				locations.append(location['name'].lower())
 		self.locations = [clean_text(location) for location in locations]
-		with open(cities_name) as f:
-			self.locations += [location.lower() for location in f.read().split('\n')[:-1]]
-
 		logger.info('New Instance\n Locations considered: %s', self.locations)
 
 	def find_locations_naive(self, text):

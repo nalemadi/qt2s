@@ -26,10 +26,8 @@ REDIS_DB = redis.Redis(host=cfg['redis']['host'], port=cfg['redis']['port'])
 
 
 KEYWORD_DICT_FILE = 'data/traffic_dict.csv'
-LOCATION_DICT_FILE = 'data/location_dict.csv'
 GEOCODED_LOCATION_DICT_FILE = 'data/geolocated_locations.txt'
 SLANG_DICT_FILE = 'data/slang_dict.csv'
-CITIES_NAME = 'data/qatar_cities_dict.txt'
 
 GOOGLE_KEY = cfg['online_keys']['google']
 BING_KEY = cfg['online_keys']['bing']
@@ -91,9 +89,10 @@ def extract_entities():
 	write_channel = '%s:%s' % (REDIS_NAMESPACE, REDIS_NAME_LOCATED_TWEETS)
 	non_located_channel = '%s:%s' % (REDIS_NAMESPACE, REDIS_NAME_NON_LOCATED_TWEETS)
 
-	twitter_location_er = TwitterLocationER(location_dictionary_file=LOCATION_DICT_FILE, cities_name=CITIES_NAME)
+	twitter_location_er = TwitterLocationER(location_dictionary_file=GEOCODED_LOCATION_DICT_FILE)
+	location_geocoding = LocationGeocoding(google_key=GOOGLE_KEY, bing_key=BING_KEY, country_code='QA',\
+										   geocoded_location_file=GEOCODED_LOCATION_DICT_FILE)
 	slang_detection = SlangDetection(slang_dictionary_file=SLANG_DICT_FILE)
-	location_geocoding = LocationGeocoding(google_key=GOOGLE_KEY, bing_key=BING_KEY, country_code='QA', geocoded_location_file=GEOCODED_LOCATION_DICT_FILE)
 	logger.info("Starting LocationTagger. Will read from %s and write into %s", read_channel, write_channel)
 
 	while True:

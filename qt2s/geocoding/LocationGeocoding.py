@@ -215,12 +215,6 @@ class LocationGeocoding:
 			locations.append(loc)
 		location_dic_file.close()
 
-		cities_file = open('../data/qatar_cities_dict.txt')
-		for line in cities_file:
-			loc = line.strip()
-			locations.append(loc)
-		cities_file.close()
-
 		geolocated_locations_file = open('../data/geolocated_locations.txt', 'w')
 		for location in locations:
 			location_dict = dict()
@@ -321,8 +315,13 @@ class LocationGeocoding:
 
 	@staticmethod
 	def get_qatar_locations():
-		with open('data/qatar_locations.txt') as f:
-			locations = [loc.strip().lower().decode('utf-8') for loc in f.read().strip().split('\n')]
+		locations = []
+		with open('data/geolocated_locations.txt') as f:
+			for line in f:
+				if len(line.strip()) == 0:
+					continue
+				location = json.loads(line)
+				locations.append(location['name'].lower())
 		return locations
 
 if __name__ == '__main__':
@@ -333,21 +332,15 @@ if __name__ == '__main__':
 	lg = LocationGeocoding(google_key=GOOGLE_KEY, bing_key=BING_KEY, country_code='QA', geocoded_location_file=GEOCODED_LOCATION_DICT_FILE)
 
 	#print lg.request_online_geocodes('Landmark')
-	#print lg.geocode_location('AlEmadi Hospital')
+	# Geocode all streets.
+	# outputfile = open('../data/qatar_streets_roads_geocoded.txt', 'w')
+	# streets = [w.lower() for w in open('../data/qatar_streets_roads.txt').read().split('\n')[:-1]]
+	# cpt = 0
+	# for st in streets:
+	# 	print 'geocoding street nb: %s' % cpt
+	# 	cpt += 1
+	# 	x = lg.request_online_geocodes(st)
+	# 	outputfile.write(json.dumps(x)+'\n')
+	# outputfile.close()
 
-	tweet = dict()
-	#tweet['coordinates'] = {'coordinates':[25.20035,51.36608]}
-	tweet['coordinates'] = None
-	tweet['user'] = {'location':'Doha,test?'}
-	#tweet['user'] = {'location':'دفنة'}
 
-	#tweet['user'] = {'location': None}
-	#tweet['user'] = None
-	#print tweet
-	print lg.is_tweet_from_qatar(tweet)
-
-	text = 'قطر'.decode('utf8')
-	print text, type(text)
-
-	text = u'قطر'
-	print text, type(text)
