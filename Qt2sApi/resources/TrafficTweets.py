@@ -3,6 +3,7 @@ __author__ = 'sofiane'
 import json
 import redis
 import yaml
+from time import time
 
 from flask_restful import fields, Resource, marshal_with, reqparse, abort
 from common.models import Client
@@ -98,12 +99,21 @@ class TrafficTweets(Resource):
 		args = self.parser.parse_args()
 		count = args['count']
 		key = args['key']
-		#if not self.verify_key(key):
-		#	abort(401, message="Unauthorized user")
+		if not self.verify_key(key):
+			abort(401, message="Unauthorized user")
 		tweets = self._get_tweets(count)
 		output = dict()
 		output['res'] = tweets
 		output['nb_tweets'] = len(tweets)
+		# API Monitoring: insert into Redis
+		log_entry = dict()
+		log_entry['timestamp'] = str(time()).split('.')[0]
+		log_entry['params'] = dict()
+		log_entry['params']['count'] = count
+		client = Client.query.filter_by(key=key).first()
+		client_name = client.name
+		self.redis_db.rpush('QT2S:{}'.format(client_name), json.dumps(log_entry))
+		# End API monitoring
 		return output, 200
 
 	@marshal_with(tweet_fields)
