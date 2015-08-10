@@ -57,3 +57,4 @@ class TwitterLocationER:
 				found_locations.add(location)
 		logger.debug('Locations found: %s', found_locations)
 		return found_locations
+

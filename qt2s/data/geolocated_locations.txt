@@ -599,7 +599,6 @@
 {"name": "landmark crossing", "coordinates": null}
 {"name": "landmark exchange", "coordinates": null}
 {"name": "landmark traffic light", "coordinates": null}
-{"name": "long drive", "coordinates": null}
 {"name": "ludaihi r/d", "coordinates": {"bing": {"lat": 25.26014, "lng": 51.50419, "formatted_address": "Al Wudaihi Street, Doha, Qatar"}, "google": null, "nominatim": null}}
 {"name": "ludaihi roundabout", "coordinates": null}
 {"name": "lulu signal", "coordinates": null}

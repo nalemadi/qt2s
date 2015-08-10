@@ -107,7 +107,7 @@ def extract_entities():
 		is_from_qatar = location_geocoding.is_tweet_from_qatar(data)
 
 		# Remove a trivial false positive: Pearl Jam
-		if (len(locations) > 0 and 'pearl jam' not in data['text'].lower()) or is_from_qatar:
+		if len(locations) > 0 and 'pearl jam' not in data['text'].lower():
 			geocoded_locations = [location_geocoding.geocode_location(location) for location in locations]
 			data['is_from_qatar'] = is_from_qatar
 			data['contains_traffic_locations'] = True
