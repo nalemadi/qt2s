@@ -255,8 +255,9 @@ class LocationGeocoding:
 			geocodes = self.request_online_geocodes(location)
 			# add to the list of geocoded locations
 			self.geocoded_locations[location.lower()] = geocodes
+			# Sofiane: I have disabled the persister for now.
 			# write into the file
-			self.persist_geocodes(geocodes)
+			# self.persist_geocodes(geocodes)
 			return geocodes
 
 	def persist_geocodes(self, geocodes):
