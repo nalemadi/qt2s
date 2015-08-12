@@ -96,8 +96,14 @@ class LocationGeocoding:
 		location += ' '+'Qatar'
 		basepath = "[REDACTED_URL]     "
 		params = {"addressdetails":1,"format":"json", "country":"QA", "q":location}
-		response = urllib2.urlopen(basepath+urllib.urlencode(params))
-		results = response.read()
+		try:
+			response = urllib2.urlopen(basepath+urllib.urlencode(params))
+			results = response.read()
+
+		except:
+			logger.error('Unable to reach Nominatim Server. Request for location: {}'.format(location))
+			return None
+
 		try:
 			results = json.loads(results)
 			#print results
