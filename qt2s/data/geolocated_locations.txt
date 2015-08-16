@@ -563,8 +563,6 @@
 {"name": "gulf interchange", "coordinates": {"bing": {"lat": 25.28958, "lng": 51.51624, "formatted_address": "Gulf Interchange, Doha, Qatar"}, "google": null, "nominatim": {"lat": "25.2895506", "lng": "51.5157391", "formatted_address": "Gulf Interchange, Al Sadd (38), Doha, \u200f\u0642\u0637\u0631\u200e"}}}
 {"name": "gulf road 24 bldg., bin mahmoud", "coordinates": null}
 {"name": "haloul street", "coordinates": {"bing": {"lat": 25.25406, "lng": 51.49138, "formatted_address": "Haloul Street, Doha, Qatar"}, "google": {"lat": 25.2518531, "lng": 51.4877264, "formatted_address": "Haloul Street, Doha, Qatar"}, "nominatim": {"lat": "25.2595748", "lng": "51.5003429", "formatted_address": "Haloul Street, New Aslata (40), Ar Rayyan, \u200f\u0642\u0637\u0631\u200e"}}}
-{"name": "hgh signal", "coordinates": null}
-{"name": "high way", "coordinates": null}
 {"name": "hitteen st.", "coordinates": {"bing": {"lat": 25.27221, "lng": 51.52539, "formatted_address": "Hitteen Street, Doha, Qatar"}, "google": null, "nominatim": null}}
 {"name": "holiday villa signal", "coordinates": null}
 {"name": "hot bread bakery r/a", "coordinates": null}
@@ -653,12 +651,9 @@
 {"name": "orycx r/a", "coordinates": null}
 {"name": "othman bin talha street", "coordinates": {"bing": {"lat": 25.27503, "lng": 51.496, "formatted_address": "Othman Bin Talha Street, Doha, Qatar"}, "google": null, "nominatim": null}}
 {"name": "papa john's signal", "coordinates": null}
-{"name": "parachute", "coordinates": null}
-{"name": "parachute round a boat", "coordinates": null}
+{"name": "parachute RA", "coordinates": null}
 {"name": "parachute roundabout", "coordinates": null}
 {"name": "pearl roundabout", "coordinates": {"bing": {"lat": 25.37186, "lng": 51.53735, "formatted_address": "Pearl Roundabout, Doha, Qatar"}, "google": null, "nominatim": null}}
-{"name": "pec t/s", "coordinates": null}
-{"name": "petrol station", "coordinates": {"bing": null, "google": null, "nominatim": {"lat": "25.2985955", "lng": "51.4467616", "formatted_address": "Petrol Station - New Rayyan R/A, Huwar Street, Old Al Rayyan (52), Al-Rayyan, Ar Rayyan, \u200f\u0642\u0637\u0631\u200e"}}}
 {"name": "qafco lane intersection", "coordinates": null}
 {"name": "qatar club roundabout", "coordinates": null}
 {"name": "qatar decoration ra", "coordinates": null}

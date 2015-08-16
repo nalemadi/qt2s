@@ -9,6 +9,7 @@ import yaml
 from TwitterCollector import TwitterCollector
 from TwitterClassifier import TwitterClassifier
 from TwitterLocationER import TwitterLocationER
+from TwitterPersister import TwitterPersister
 from SlangDetection import SlangDetection
 from geocoding.LocationGeocoding import LocationGeocoding
 from datetime import datetime
@@ -33,6 +34,8 @@ GOOGLE_KEY = cfg['online_keys']['google']
 BING_KEY = cfg['online_keys']['bing']
 
 LOG_FILE_LOCATION = cfg['logfile']
+
+PERSISTER_FOLDER = cfg['persister_folder']
 
 # Initialize the logger
 # TODO: turn logging level to INFO before deploying into production.
@@ -62,6 +65,8 @@ def classify_tweets():
 	"""
 	read_channel = '%s:%s' % (REDIS_NAMESPACE, REDIS_NAME_RAW_TWEETS)
 	write_channel = '%s:%s' % (REDIS_NAMESPACE, REDIS_NAME_TRAFFIC_TWEETS)
+	non_relevant_tweets_channel = '%s:%s' % (REDIS_NAMESPACE, REDIS_NAME_NON_LOCATED_TWEETS)
+
 	tweet_classifier = TwitterClassifier(method='Keyword', keyword_dictionary_file=KEYWORD_DICT_FILE)
 	logger.info("Starting Classifier. Will read from %s and write into %s", read_channel, write_channel)
 	while True:
@@ -76,7 +81,9 @@ def classify_tweets():
 			data['is_about_traffic'] = True
 			# Write to a new Redis channel: REDIS_NAMESPACE:REDIS_NAME_TRAFFIC_TWEETS
 			REDIS_DB.rpush(write_channel, json.dumps(data))
-
+		else:
+			data['is_about_traffic'] = False
+			REDIS_DB.rpush(non_relevant_tweets_channel, json.dumps(data))
 
 def extract_entities():
 	"""
@@ -87,7 +94,7 @@ def extract_entities():
 	"""
 	read_channel = '%s:%s' % (REDIS_NAMESPACE, REDIS_NAME_TRAFFIC_TWEETS)
 	write_channel = '%s:%s' % (REDIS_NAMESPACE, REDIS_NAME_LOCATED_TWEETS)
-	non_located_channel = '%s:%s' % (REDIS_NAMESPACE, REDIS_NAME_NON_LOCATED_TWEETS)
+	non_relevant_tweets_channel = '%s:%s' % (REDIS_NAMESPACE, REDIS_NAME_NON_LOCATED_TWEETS)
 
 	twitter_location_er = TwitterLocationER(location_dictionary_file=GEOCODED_LOCATION_DICT_FILE)
 	location_geocoding = LocationGeocoding(google_key=GOOGLE_KEY, bing_key=BING_KEY, country_code='QA',\
@@ -118,12 +125,29 @@ def extract_entities():
 			REDIS_DB.rpush(write_channel, json.dumps(data))
 			logger.info("New located tweets:%s\n Locations: %s", data['text'], list(locations))
 		else:
-			# add the tweet to the end, and make sure the list has at most 100K tweets
-			REDIS_DB.rpush(non_located_channel, json.dumps(data))
-			REDIS_DB.ltrim(non_located_channel, -100000, -1)
+			# add the tweet to the end, and make sure the list has at most 1M tweets
+			data['contains_traffic_locations'] = False
+			REDIS_DB.rpush(non_relevant_tweets_channel, json.dumps(data))
+			REDIS_DB.ltrim(non_relevant_tweets_channel, -1000000, -1)
+
+def persist_tweets():
+	"""
+	Persist tweets that not exposed thru the API: non traffic related, non geo-located.
+	:return:
+	"""
+	non_relevant_tweets_channel = '%s:%s' % (REDIS_NAMESPACE, REDIS_NAME_NON_LOCATED_TWEETS)
+	twitter_persister = TwitterPersister(persister_folder=PERSISTER_FOLDER, file_size=100000)
+	while True:
+		data = REDIS_DB.blpop(non_relevant_tweets_channel)
+		if len(data) != 2:
+			continue
+		data = data[1]
+		twitter_persister.append_tweet(data.replace('\r\n', ' ').replace('\n', ' '))
+
 
 if __name__ == '__main__':
-	logger.info('\n\n=================\n\nNEW INSTANCE\n-------------\n-->Started on: %s\n',datetime.now())
+	logger.info('\n\n=================\n\nNEW INSTANCE\n-------------\n-->Started on: %s\n', datetime.now())
+
 	collector = multiprocessing.Process(name='Collector', target=collect_tweets)
 	collector.start()
 
@@ -133,3 +157,5 @@ if __name__ == '__main__':
 	location_tagger = multiprocessing.Process(name='LocationER', target=extract_entities)
 	location_tagger.start()
 
+	persister = multiprocessing.Process(name='Persister', target=persist_tweets)
+	persister.start()
