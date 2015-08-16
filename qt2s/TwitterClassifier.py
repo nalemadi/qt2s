@@ -10,8 +10,8 @@ class TwitterClassifier:
 		if method == 'keyword' and not keyword_dictionary_file:
 			logger.error('Error: you should provide a path to the keywords file')
 			raise Exception('Error: you should provide a path to the keywords file')
-
 		self.keywords = [clean_text(w.strip().lower()) for w in open(keyword_dictionary_file).read().split(',')]
+
 		if method == 'classifier' and not model:
 			logger.error('Error: you should provide a path to the classifier model')
 			raise Exception('Error: you should provide a path to the classifier model')
@@ -32,6 +32,14 @@ class TwitterClassifier:
 				return True
 		logger.debug("This tweet [%s] is NOT about traffic", text)
 		return False
+
+	def _generate_tweets_file(self):
+		"""
+		Reads from redis channel of tweets 500 tweets and write them into a file
+		:return: file called tweets_500.out that will be used by Paco's classifier
+		"""
+
+
 
 
 

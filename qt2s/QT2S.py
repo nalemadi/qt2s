@@ -5,6 +5,7 @@ import json
 import logging
 import multiprocessing
 import yaml
+import subprocess
 
 from TwitterCollector import TwitterCollector
 from TwitterClassifier import TwitterClassifier
@@ -57,6 +58,55 @@ def collect_tweets():
 	twitter_collector.get_tweets()
 
 
+def classify_tweets_paco():
+	""" Uses Paco's classifier
+	Reads from redis channel REDIS_NAMESPACE:REDIS_NAME_RAW_TWEETS, checks if the tweet is about traffic
+	then write to the redis channel: REDIS_NAMESPACE:REDIS_NAME_TRAFFIC_TWEETS
+	:return:
+	"""
+	read_channel = '%s:%s' % (REDIS_NAMESPACE, REDIS_NAME_RAW_TWEETS)
+	write_channel = '%s:%s' % (REDIS_NAMESPACE, REDIS_NAME_TRAFFIC_TWEETS)
+	non_relevant_tweets_channel = '%s:%s' % (REDIS_NAMESPACE, REDIS_NAME_NON_LOCATED_TWEETS)
+
+	tweet_classifier = TwitterClassifier(method='Keyword', keyword_dictionary_file=KEYWORD_DICT_FILE)
+	logger.info("Starting Classifier. Will read from %s and write into %s", read_channel, write_channel)
+
+	# Integrating Paco's classifier
+	# Create a list of tweets, once the list has X (=500) tweets,
+	# write them into a file: tweets.out and run the classifier,
+	# then read from the output and write to redis, and remove the files.
+	tweets = []
+	tweets_file_name = 'traffic_classifier/data/tweets_200.out'
+	while True:
+		# read from Redis channel: REDIS_NAMESPACE:REDIS_NAME_RAW_TWEETS
+		data = REDIS_DB.blpop(read_channel)
+		if len(data) != 2:
+			continue
+		data = data[1]
+		logger.debug("READ from redis [type:%s]: %s", type(data), data)
+		tweets.append(data.replace('\r\n', ' ').replace('\n', ' '))
+		if len(tweets) == 200:
+			logger.info("Running classifier on 200 Tweets")
+			# 1. Create tweets file
+			with open(tweets_file_name, 'w') as outfile:
+				outfile.write('\n'.join(tweets))
+			# 2. Run classifier
+			subprocess.call(['./traffic_classifier/classifydata.sh', tweets_file_name])
+			# 3. Read the output file, and write tweets into corresponding redis channels.
+			with open(tweets_file_name+'.classification.results') as outfile:
+				for idx, line in enumerate(outfile):
+					decision = line.strip()
+					data = json.loads(tweets[idx])
+					if decision == 'Y':
+						data['is_about_traffic'] = True
+						REDIS_DB.rpush(write_channel, json.dumps(data))
+					elif decision == 'N':
+						data['is_about_traffic'] = False
+						REDIS_DB.rpush(non_relevant_tweets_channel, json.dumps(data))
+			# 4. Empty tweets list
+			tweets = []
+
+
 def classify_tweets():
 	"""
 	Reads from redis channel REDIS_NAMESPACE:REDIS_NAME_RAW_TWEETS, checks if the tweet is about traffic
@@ -69,6 +119,7 @@ def classify_tweets():
 
 	tweet_classifier = TwitterClassifier(method='Keyword', keyword_dictionary_file=KEYWORD_DICT_FILE)
 	logger.info("Starting Classifier. Will read from %s and write into %s", read_channel, write_channel)
+
 	while True:
 		# read from Redis channel: REDIS_NAMESPACE:REDIS_NAME_RAW_TWEETS
 		data = REDIS_DB.blpop(read_channel)
@@ -84,6 +135,7 @@ def classify_tweets():
 		else:
 			data['is_about_traffic'] = False
 			REDIS_DB.rpush(non_relevant_tweets_channel, json.dumps(data))
+
 
 def extract_entities():
 	"""
@@ -130,6 +182,7 @@ def extract_entities():
 			REDIS_DB.rpush(non_relevant_tweets_channel, json.dumps(data))
 			REDIS_DB.ltrim(non_relevant_tweets_channel, -1000000, -1)
 
+
 def persist_tweets():
 	"""
 	Persist tweets that not exposed thru the API: non traffic related, non geo-located.
@@ -151,7 +204,7 @@ if __name__ == '__main__':
 	collector = multiprocessing.Process(name='Collector', target=collect_tweets)
 	collector.start()
 
-	classifier = multiprocessing.Process(name='Classifier', target=classify_tweets)
+	classifier = multiprocessing.Process(name='Classifier', target=classify_tweets_paco)
 	classifier.start()
 
 	location_tagger = multiprocessing.Process(name='LocationER', target=extract_entities)
