@@ -6,6 +6,7 @@ import logging
 import multiprocessing
 import yaml
 import subprocess
+import os
 
 from TwitterCollector import TwitterCollector
 from TwitterClassifier import TwitterClassifier
@@ -22,8 +23,9 @@ with open("resources/qt2sconfig.yml", 'r') as f:
 REDIS_NAMESPACE = cfg['redis']['hostname']
 REDIS_NAME_RAW_TWEETS = cfg['redis']['channels']['raw_tweets']
 REDIS_NAME_TRAFFIC_TWEETS = cfg['redis']['channels']['traffic_tweets']
-REDIS_NAME_NON_LOCATED_TWEETS = cfg['redis']['channels']['non_traffic_tweets']
-REDIS_NAME_LOCATED_TWEETS = cfg['redis']['channels']['located_tweets']
+REDIS_NAME_NON_TRAFFIC_TWEETS = cfg['redis']['channels']['non_traffic_tweets']
+REDIS_NAME_LOCATED_TRAFFIC_TWEETS = cfg['redis']['channels']['located_traffic_tweets']
+REDIS_NAME_NON_LOCATED_TRAFFIC_TWEETS = cfg['redis']['channels']['non_located_traffic_tweets']
 REDIS_DB = redis.Redis(host=cfg['redis']['host'], port=cfg['redis']['port'])
 
 
@@ -66,15 +68,12 @@ def classify_tweets_paco():
 	"""
 	read_channel = '%s:%s' % (REDIS_NAMESPACE, REDIS_NAME_RAW_TWEETS)
 	write_channel = '%s:%s' % (REDIS_NAMESPACE, REDIS_NAME_TRAFFIC_TWEETS)
-	non_relevant_tweets_channel = '%s:%s' % (REDIS_NAMESPACE, REDIS_NAME_NON_LOCATED_TWEETS)
+	non_traffic_tweets_channel = '%s:%s' % (REDIS_NAMESPACE, REDIS_NAME_NON_TRAFFIC_TWEETS)
 
-	tweet_classifier = TwitterClassifier(method='Keyword', keyword_dictionary_file=KEYWORD_DICT_FILE)
+	# tweet_classifier = TwitterClassifier(method='Keyword', keyword_dictionary_file=KEYWORD_DICT_FILE)
 	logger.info("Starting Classifier. Will read from %s and write into %s", read_channel, write_channel)
 
 	# Integrating Paco's classifier
-	# Create a list of tweets, once the list has X (=500) tweets,
-	# write them into a file: tweets.out and run the classifier,
-	# then read from the output and write to redis, and remove the files.
 	tweets = []
 	tweets_file_name = 'traffic_classifier/data/tweets_200.out'
 	while True:
@@ -102,7 +101,7 @@ def classify_tweets_paco():
 						REDIS_DB.rpush(write_channel, json.dumps(data))
 					elif decision == 'N':
 						data['is_about_traffic'] = False
-						REDIS_DB.rpush(non_relevant_tweets_channel, json.dumps(data))
+						REDIS_DB.rpush(non_traffic_tweets_channel, json.dumps(data))
 			# 4. Empty tweets list
 			tweets = []
 
@@ -115,7 +114,7 @@ def classify_tweets():
 	"""
 	read_channel = '%s:%s' % (REDIS_NAMESPACE, REDIS_NAME_RAW_TWEETS)
 	write_channel = '%s:%s' % (REDIS_NAMESPACE, REDIS_NAME_TRAFFIC_TWEETS)
-	non_relevant_tweets_channel = '%s:%s' % (REDIS_NAMESPACE, REDIS_NAME_NON_LOCATED_TWEETS)
+	non_relevant_tweets_channel = '%s:%s' % (REDIS_NAMESPACE, REDIS_NAME_NON_TRAFFIC_TWEETS)
 
 	tweet_classifier = TwitterClassifier(method='Keyword', keyword_dictionary_file=KEYWORD_DICT_FILE)
 	logger.info("Starting Classifier. Will read from %s and write into %s", read_channel, write_channel)
@@ -145,8 +144,8 @@ def extract_entities():
 	:return: writes into write channel
 	"""
 	read_channel = '%s:%s' % (REDIS_NAMESPACE, REDIS_NAME_TRAFFIC_TWEETS)
-	write_channel = '%s:%s' % (REDIS_NAMESPACE, REDIS_NAME_LOCATED_TWEETS)
-	non_relevant_tweets_channel = '%s:%s' % (REDIS_NAMESPACE, REDIS_NAME_NON_LOCATED_TWEETS)
+	write_channel = '%s:%s' % (REDIS_NAMESPACE, REDIS_NAME_LOCATED_TRAFFIC_TWEETS)
+	non_located_traffic_tweets_channel = '%s:%s' % (REDIS_NAMESPACE, REDIS_NAME_NON_LOCATED_TRAFFIC_TWEETS)
 
 	twitter_location_er = TwitterLocationER(location_dictionary_file=GEOCODED_LOCATION_DICT_FILE)
 	location_geocoding = LocationGeocoding(google_key=GOOGLE_KEY, bing_key=BING_KEY, country_code='QA',\
@@ -179,19 +178,27 @@ def extract_entities():
 		else:
 			# add the tweet to the end, and make sure the list has at most 1M tweets
 			data['contains_traffic_locations'] = False
-			REDIS_DB.rpush(non_relevant_tweets_channel, json.dumps(data))
-			REDIS_DB.ltrim(non_relevant_tweets_channel, -1000000, -1)
+			REDIS_DB.rpush(non_located_traffic_tweets_channel, json.dumps(data))
+			REDIS_DB.ltrim(non_located_traffic_tweets_channel, -1000000, -1)
 
 
-def persist_tweets():
+def persist_tweets(redis_channel, folder_name):
 	"""
-	Persist tweets that not exposed thru the API: non traffic related, non geo-located.
-	:return:
+	Persist tweets in a given redis_channel into a folder_name
+	:param redis_channel: the redis list from which we should read tweets
+	:param folder_name: the name of the folder in which tweets should be created.
+	:return: Nothing.
 	"""
-	non_relevant_tweets_channel = '%s:%s' % (REDIS_NAMESPACE, REDIS_NAME_NON_LOCATED_TWEETS)
-	twitter_persister = TwitterPersister(persister_folder=PERSISTER_FOLDER, file_size=100000)
+
+	folder = PERSISTER_FOLDER + '/' + folder_name
+	# check if directory exists, and create it if not.
+	if not os.path.exists(folder):
+		os.makedirs(folder)
+
+	twitter_persister = TwitterPersister(persister_folder=folder, file_size=100000)
+	redis_tweets_channel = '%s:%s' % (REDIS_NAMESPACE, redis_channel)
 	while True:
-		data = REDIS_DB.blpop(non_relevant_tweets_channel)
+		data = REDIS_DB.blpop(redis_tweets_channel)
 		if len(data) != 2:
 			continue
 		data = data[1]
@@ -210,5 +217,12 @@ if __name__ == '__main__':
 	location_tagger = multiprocessing.Process(name='LocationER', target=extract_entities)
 	location_tagger.start()
 
-	persister = multiprocessing.Process(name='Persister', target=persist_tweets)
-	persister.start()
+	persist_non_traffic_tweets = multiprocessing.Process(name='NonTrafficTweetsPersister', target=persist_tweets,
+														 args=(REDIS_NAME_NON_TRAFFIC_TWEETS, 'non_traffic_tweets'))
+	persist_non_traffic_tweets.start()
+
+	persist_non_located_traffic_tweets = multiprocessing.Process(name='NonLocatedTrafficTweetsPersister',
+														 target=persist_tweets,
+														 args=(REDIS_NAME_NON_LOCATED_TRAFFIC_TWEETS,
+															   'non_located_traffic_tweets'))
+	persist_non_located_traffic_tweets.start()
