@@ -3,7 +3,7 @@ __author__ = 'sofiane'
 import json
 import redis
 import yaml
-from time import time
+import time
 
 from flask_restful import fields, Resource, marshal_with, reqparse, abort
 from common.models import Client
@@ -107,7 +107,7 @@ class TrafficTweets(Resource):
 		output['nb_tweets'] = len(tweets)
 		# API Monitoring: insert into Redis
 		log_entry = dict()
-		log_entry['timestamp'] = str(time()).split('.')[0]
+		log_entry['timestamp'] = time.strftime("%Y-%m-%d %H:%M:%S")
 		log_entry['params'] = dict()
 		log_entry['params']['count'] = count
 		client = Client.query.filter_by(key=key).first()
