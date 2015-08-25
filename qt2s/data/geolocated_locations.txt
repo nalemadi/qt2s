@@ -634,7 +634,6 @@
 {"name": "new road doha air port", "coordinates": null}
 {"name": "new road doha int'l air port-wakra", "coordinates": null}
 {"name": "new salata intersection", "coordinates": null}
-{"name": "new salata intersection", "coordinates": null}
 {"name": "nissan traffic light", "coordinates": null}
 {"name": "north road", "coordinates": {"bing": null, "google": null, "nominatim": {"lat": "25.3336984", "lng": "51.2295295", "formatted_address": "\u200f\u0642\u0637\u0631\u200e"}}}
 {"name": "north road roundabout", "coordinates": null}
@@ -676,13 +675,11 @@
 {"name": "rawdhat al khail street", "coordinates": {"bing": {"lat": 25.27719, "lng": 51.52827, "formatted_address": "Rawdat Al Khail Street, Doha, Qatar"}, "google": {"lat": 25.2589214, "lng": 51.5243805, "formatted_address": "Rawdat Al Khail Street, Doha, Qatar"}, "nominatim": null}}
 {"name": "residential area round about", "coordinates": null}
 {"name": "road 710, mesaieed", "coordinates": {"bing": null, "google": {"lat": 25.0313129, "lng": 51.5641159, "formatted_address": "New Port Road, Qatar"}, "nominatim": null}}
-{"name": "route 77", "coordinates": {"bing": {"lat": 25.35922, "lng": 51.50462, "formatted_address": "Sahat 77, Doha, Qatar"}, "google": null, "nominatim": null}}
 {"name": "safari parking", "coordinates": null}
 {"name": "salwa border", "coordinates": null}
 {"name": "salwa road", "coordinates": {"bing": {"lat": 25.2617, "lng": 51.49297, "formatted_address": "Salwa Road, Doha, Qatar"}, "google": {"lat": 25.2466632, "lng": 51.4684059, "formatted_address": "Salwa Road, Doha, Qatar"}, "nominatim": {"lat": "25.2683136", "lng": "51.504289", "formatted_address": "Salwa Road, New Aslata (40), Doha, \u200f\u0642\u0637\u0631\u200e"}}}
 {"name": "salwa road", "coordinates": {"bing": {"lat": 25.2617, "lng": 51.49297, "formatted_address": "Salwa Road, Doha, Qatar"}, "google": {"lat": 25.2466632, "lng": 51.4684059, "formatted_address": "Salwa Road, Doha, Qatar"}, "nominatim": {"lat": "25.2683136", "lng": "51.504289", "formatted_address": "Salwa Road, New Aslata (40), Doha, \u200f\u0642\u0637\u0631\u200e"}}}
 {"name": "sanna streetball ground", "coordinates": null}
-{"name": "saudi - emarites road(road 615)", "coordinates": null}
 {"name": "sealine road", "coordinates": null}
 {"name": "sealine roundabout", "coordinates": null}
 {"name": "shakespeare street", "coordinates": null}
@@ -709,12 +706,10 @@
 {"name": "street 44 karaoke bar", "coordinates": null}
 {"name": "street 46 industrial area", "coordinates": {"bing": {"lat": 25.17493, "lng": 51.45685, "formatted_address": "46 Street, Doha, Qatar"}, "google": {"lat": 25.1759423, "lng": 51.4586293, "formatted_address": "Street 46, Ar-Rayy\u0101n, Qatar"}, "nominatim": null}}
 {"name": "street 47, industrial", "coordinates": {"bing": {"lat": 25.16593, "lng": 51.44444, "formatted_address": "47 Street, Doha, Qatar"}, "google": null, "nominatim": null}}
-{"name": "street 51", "coordinates": null}
 {"name": "street 52, industrial area", "coordinates": {"bing": {"lat": 25.16771, "lng": 51.46068, "formatted_address": "52 Street, Doha, Qatar"}, "google": {"lat": 25.1679541, "lng": 51.4610713, "formatted_address": "Street 52, Ar-Rayy\u0101n, Qatar"}, "nominatim": null}}
 {"name": "street 54", "coordinates": {"bing": {"lat": 25.35398, "lng": 51.51723, "formatted_address": "Sahat 54, Doha, Qatar"}, "google": null, "nominatim": null}}
 {"name": "street 56 al khor community", "coordinates": null}
 {"name": "street 57 alkhor community", "coordinates": null}
-{"name": "street 6 home", "coordinates": null}
 {"name": "street no 03", "coordinates": null}
 {"name": "street no 11", "coordinates": {"bing": {"lat": 25.37412, "lng": 51.54233, "formatted_address": "Marina 11 Way, Doha, Qatar"}, "google": null, "nominatim": null}}
 {"name": "street no. 4 industrial area", "coordinates": null}

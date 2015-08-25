@@ -26,13 +26,15 @@ REDIS_NAME_TRAFFIC_TWEETS = cfg['redis']['channels']['traffic_tweets']
 REDIS_NAME_NON_TRAFFIC_TWEETS = cfg['redis']['channels']['non_traffic_tweets']
 REDIS_NAME_LOCATED_TRAFFIC_TWEETS = cfg['redis']['channels']['located_traffic_tweets']
 REDIS_NAME_NON_LOCATED_TRAFFIC_TWEETS = cfg['redis']['channels']['non_located_traffic_tweets']
+REDIS_NAME_RAW_ARABIC_TWEETS = cfg['redis']['channels']['raw_arabic_tweets']
 REDIS_DB = redis.Redis(host=cfg['redis']['host'], port=cfg['redis']['port'])
-
 
 KEYWORD_DICT_FILE = 'data/traffic_dict.csv'
 GEOCODED_LOCATION_DICT_FILE = 'data/geolocated_locations.txt'
 SLANG_DICT_FILE = 'data/slang_dict.csv'
 
+TWITTER_KEY = {'consumer_key': cfg['online_keys']['twitter']['consumer_key'], 'consumer_secret': cfg['online_keys']['twitter']['consumer_secret'],
+			   'access_token': cfg['online_keys']['twitter']['access_token'], 'access_token_secret': cfg['online_keys']['twitter']['access_secret']}
 GOOGLE_KEY = cfg['online_keys']['google']
 BING_KEY = cfg['online_keys']['bing']
 
@@ -54,8 +56,9 @@ def collect_tweets():
 	:return: writes into Redis Channel: REDIS_NAMESPACE:REDIS_NAME_RAW_TWEETS
 	"""
 	write_channel = '%s:%s' % (REDIS_NAMESPACE, REDIS_NAME_RAW_TWEETS)
-	twitter_collector = TwitterCollector(r_db=REDIS_DB, r_channel=write_channel,
-										keyword_dict_file=KEYWORD_DICT_FILE)
+	write_channel_arabic_tweets = '%s:%s' % (REDIS_NAMESPACE, REDIS_NAME_RAW_ARABIC_TWEETS)
+	twitter_collector = TwitterCollector(r_db=REDIS_DB, r_channel=write_channel, r_arabic_channel=write_channel_arabic_tweets,
+										keyword_dict_file=KEYWORD_DICT_FILE, twitter_key=TWITTER_KEY)
 	logger.info("Starting Collector. Will read from twitter and write into %s", write_channel)
 	twitter_collector.get_tweets()
 
@@ -226,3 +229,7 @@ if __name__ == '__main__':
 														 args=(REDIS_NAME_NON_LOCATED_TRAFFIC_TWEETS,
 															   'non_located_traffic_tweets'))
 	persist_non_located_traffic_tweets.start()
+
+	persist_arabic_tweets = multiprocessing.Process(name='ArabicTweetsPersister', target=persist_tweets,
+														 args=(REDIS_NAME_RAW_ARABIC_TWEETS, 'arabic_tweets'))
+	persist_arabic_tweets.start()
