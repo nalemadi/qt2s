@@ -50,7 +50,7 @@ class TwitterCollector(StreamListener):
 		self.redis_arabic_channel = r_arabic_channel
 		# Initialize traffic filter.
 		with open(keyword_dict_file) as f:
-			self.keywords = [w.strip() for w in f.read().split('\n')[:-1]]
+			self.keywords = [w.strip().decode('utf-8') for w in f.read().split('\n')[:-1]]
 
 	@staticmethod
 	def is_valid_tweet(data):
@@ -101,5 +101,5 @@ class TwitterCollector(StreamListener):
 				sapi = Stream(auth, self)
 				sapi.filter(track=self.keywords)
 			except Exception as e:
-				logger.error("Something went wrong with the lister, the exception is: %s", e)
+				logger.error("Something went wrong with the listener, the exception is: %s", e)
 				continue
