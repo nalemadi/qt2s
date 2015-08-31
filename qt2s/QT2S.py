@@ -1,21 +1,23 @@
 __author__ = 'sofiane'
 
-import redis
 import json
 import logging
 import multiprocessing
-import yaml
 import subprocess
 import os
+from datetime import datetime
+
+import redis
+import yaml
 
 from TwitterCollector import TwitterCollector
-from TwitterClassifier import TwitterClassifier
+from traffic_classifier.TwitterClassifier import TwitterClassifier
 from TwitterLocationER import TwitterLocationER
 from TwitterPersister import TwitterPersister
 from SlangDetection import SlangDetection
 from geocoding.LocationGeocoding import LocationGeocoding
-from datetime import datetime
-
+from traffic_classifier.ArabicTwitterClassifier import ArabicTwitterClassifier
+from ArabicTwitterLocationER import ArabicTwitterLocationER
 
 with open("resources/qt2sconfig.yml", 'r') as f:
 	cfg = yaml.load(f)
@@ -27,6 +29,10 @@ REDIS_NAME_NON_TRAFFIC_TWEETS = cfg['redis']['channels']['non_traffic_tweets']
 REDIS_NAME_LOCATED_TRAFFIC_TWEETS = cfg['redis']['channels']['located_traffic_tweets']
 REDIS_NAME_NON_LOCATED_TRAFFIC_TWEETS = cfg['redis']['channels']['non_located_traffic_tweets']
 REDIS_NAME_RAW_ARABIC_TWEETS = cfg['redis']['channels']['raw_arabic_tweets']
+REDIS_NAME_NON_TRAFFIC_ARABIC_TWEETS = cfg['redis']['channels']['non_traffic_arabic_tweets']
+REDIS_NAME_TRAFFIC_ARABIC_TWEETS = cfg['redis']['channels']['traffic_arabic_tweets']
+REDIS_NAME_NON_LOCATED_ARABIC_TRAFFIC_TWEETS = cfg['redis']['channels']['non_located_arabic_traffic_tweets']
+REDIS_NAME_LOCATED_ARABIC_TRAFFIC_TWEETS = cfg['redis']['channels']['located_arabic_traffic_tweets']
 REDIS_DB = redis.Redis(host=cfg['redis']['host'], port=cfg['redis']['port'])
 
 KEYWORD_DICT_FILE = 'data/traffic_dict.csv'
@@ -46,7 +52,7 @@ PERSISTER_FOLDER = cfg['persister_folder']
 # TODO: turn logging level to INFO before deploying into production.
 logging.basicConfig(filename=LOG_FILE_LOCATION,
 			format='%(levelname)s: %(module)s: %(funcName)s: %(message)s',
-			level=logging.INFO)
+			level=logging.DEBUG)
 logger = logging.getLogger('__name__')
 
 
@@ -139,6 +145,27 @@ def classify_tweets():
 			REDIS_DB.rpush(non_relevant_tweets_channel, json.dumps(data))
 
 
+def classify_arabic_tweets():
+	read_channel = '%s:%s' % (REDIS_NAMESPACE, REDIS_NAME_RAW_ARABIC_TWEETS)
+	write_channel = '%s:%s' % (REDIS_NAMESPACE, REDIS_NAME_TRAFFIC_ARABIC_TWEETS)
+	non_relevant_arabic_tweets_channel = '%s:%s' % (REDIS_NAMESPACE, REDIS_NAME_NON_TRAFFIC_ARABIC_TWEETS)
+	arabic_tweet_classifier = ArabicTwitterClassifier()
+	logger.info("Starting Classifier. Will read from %s and write into %s", read_channel, write_channel)
+	while True:
+		data = REDIS_DB.blpop(read_channel)
+		if len(data) != 2:
+			continue
+		data = data[1]
+		logger.debug("READ from redis [type:%s]: %s", type(data), data)
+		data = json.load(data)
+		if arabic_tweet_classifier.is_about_traffic(data):
+			data['is_about_traffic'] = True
+			REDIS_DB.rpush(write_channel, json.dumps(data))
+		else:
+			data['is_about_traffic'] = False
+			REDIS_DB.rpush(non_relevant_arabic_tweets_channel, json.dumps(data))
+
+
 def extract_entities():
 	"""
 	Extract location from tweets. Blocking reads from read_channel,
@@ -184,6 +211,33 @@ def extract_entities():
 			REDIS_DB.rpush(non_located_traffic_tweets_channel, json.dumps(data))
 			REDIS_DB.ltrim(non_located_traffic_tweets_channel, -1000000, -1)
 
+def extract_ar_entities():
+	read_channel = '%s:%s' % (REDIS_NAMESPACE, REDIS_NAME_TRAFFIC_ARABIC_TWEETS)
+	write_channel = '%s:%s' % (REDIS_NAMESPACE, REDIS_NAME_LOCATED_ARABIC_TRAFFIC_TWEETS)
+	non_located_arabic_traffic_tweets_channel = '%s:%s' % (REDIS_NAMESPACE, REDIS_NAME_NON_LOCATED_ARABIC_TRAFFIC_TWEETS)
+
+	arabic_twitter_location_er = ArabicTwitterLocationER()
+	location_geocoding = LocationGeocoding(google_key=GOOGLE_KEY, bing_key=BING_KEY, country_code='QA',geocoded_location_file=GEOCODED_LOCATION_DICT_FILE)
+
+	while True:
+		data = REDIS_DB.blpop(read_channel)
+		if len(data) != 2:
+			continue
+		data = data[1]
+		data = json.loads(data)
+		is_qatar_doha_expression_exist = arabic_twitter_location_er.is_tweet_has_local_expressions(data['text'].lower())
+		is_from_qatar = location_geocoding.is_tweet_from_qatar(data)
+
+		if is_from_qatar or is_qatar_doha_expression_exist:
+			data['is_from_qatar'] = True
+			data['contains_traffic_locations'] = True
+			REDIS_DB.rpush(write_channel, json.dumps(data))
+		else:
+			data['is_from_qatar'] = False
+			data['contains_traffic_locations'] = False
+			REDIS_DB.rpush(non_located_arabic_traffic_tweets_channel, json.dumps(data))
+			REDIS_DB.ltrim(non_located_arabic_traffic_tweets_channel, -1000000, -1)
+
 
 def persist_tweets(redis_channel, folder_name):
 	"""
@@ -210,19 +264,29 @@ def persist_tweets(redis_channel, folder_name):
 
 if __name__ == '__main__':
 	logger.info('\n\n=================\n\nNEW INSTANCE\n-------------\n-->Started on: %s\n', datetime.now())
-
+	print 'start'
 	collector = multiprocessing.Process(name='Collector', target=collect_tweets)
 	collector.start()
 
+	"""
 	classifier = multiprocessing.Process(name='Classifier', target=classify_tweets_paco)
 	classifier.start()
+
+	ar_classifier = multiprocessing.Process(name='ClassifierAR', target=classify_arabic_tweets())
+	ar_classifier.start()
 
 	location_tagger = multiprocessing.Process(name='LocationER', target=extract_entities)
 	location_tagger.start()
 
+	location_tagger_ar = multiprocessing.Process(name='ARLocationER', target=extract_ar_entities)
+	location_tagger_ar.start()
+
 	persist_non_traffic_tweets = multiprocessing.Process(name='NonTrafficTweetsPersister', target=persist_tweets,
 														 args=(REDIS_NAME_NON_TRAFFIC_TWEETS, 'non_traffic_tweets'))
 	persist_non_traffic_tweets.start()
+
+	persist_non_traffic_arabic_tweets = multiprocessing.Process(name='NonTrafficArabicTweetsPersister', target=persist_tweets, args=(REDIS_NAME_NON_TRAFFIC_ARABIC_TWEETS, 'non_traffic_arabic_tweets'))
+	persist_non_traffic_arabic_tweets.start()
 
 	persist_non_located_traffic_tweets = multiprocessing.Process(name='NonLocatedTrafficTweetsPersister',
 														 target=persist_tweets,
@@ -230,6 +294,10 @@ if __name__ == '__main__':
 															   'non_located_traffic_tweets'))
 	persist_non_located_traffic_tweets.start()
 
-	persist_arabic_tweets = multiprocessing.Process(name='ArabicTweetsPersister', target=persist_tweets,
-														 args=(REDIS_NAME_RAW_ARABIC_TWEETS, 'arabic_tweets'))
-	persist_arabic_tweets.start()
+	persist_non_located_arabic_traffic_tweets = multiprocessing.Process(name='NonLocatedArabicTrafficTweetsPersister', target=persist_tweets, args=(REDIS_NAME_NON_LOCATED_ARABIC_TRAFFIC_TWEETS, 'non_located_arabic_traffic_tweets'))
+	persist_non_located_arabic_traffic_tweets.start()
+
+	#persist_arabic_tweets = multiprocessing.Process(name='ArabicTweetsPersister', target=persist_tweets,
+	#													 args=(REDIS_NAME_RAW_ARABIC_TWEETS, 'arabic_tweets'))
+	#persist_arabic_tweets.start()
+	"""
