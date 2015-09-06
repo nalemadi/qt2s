@@ -268,11 +268,10 @@ if __name__ == '__main__':
 	collector = multiprocessing.Process(name='Collector', target=collect_tweets)
 	collector.start()
 
-	"""
 	classifier = multiprocessing.Process(name='Classifier', target=classify_tweets_paco)
 	classifier.start()
 
-	ar_classifier = multiprocessing.Process(name='ClassifierAR', target=classify_arabic_tweets())
+	ar_classifier = multiprocessing.Process(name='ClassifierAR', target=classify_arabic_tweets)
 	ar_classifier.start()
 
 	location_tagger = multiprocessing.Process(name='LocationER', target=extract_entities)
@@ -296,8 +295,3 @@ if __name__ == '__main__':
 
 	persist_non_located_arabic_traffic_tweets = multiprocessing.Process(name='NonLocatedArabicTrafficTweetsPersister', target=persist_tweets, args=(REDIS_NAME_NON_LOCATED_ARABIC_TRAFFIC_TWEETS, 'non_located_arabic_traffic_tweets'))
 	persist_non_located_arabic_traffic_tweets.start()
-
-	#persist_arabic_tweets = multiprocessing.Process(name='ArabicTweetsPersister', target=persist_tweets,
-	#													 args=(REDIS_NAME_RAW_ARABIC_TWEETS, 'arabic_tweets'))
-	#persist_arabic_tweets.start()
-	"""
