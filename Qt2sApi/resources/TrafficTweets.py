@@ -6,7 +6,7 @@ import yaml
 import time
 
 from flask_restful import fields, Resource, marshal_with, reqparse, abort
-from common.models import Client
+from Qt2sApi.common.models import Client
 
 
 class user_id_str(fields.Raw):
@@ -32,7 +32,7 @@ class user_url_picture(fields.Raw):
 class tweet_coordinates(fields.Raw):
 	def output(self, key, obj):
 		if obj['coordinates']:
-			return {'lat': obj['coordinates']['coordinates'][0], 'lng': obj['coordinates']['coordinates'][0]}
+			return {'lat': obj['coordinates']['coordinates'][1], 'lng': obj['coordinates']['coordinates'][0]}
 		else:
 			return None
 
@@ -84,24 +84,27 @@ class TrafficTweets(Resource):
 		self.parser.add_argument('count', type=int, default=50, help='count cannot be converted')
 		self.parser.add_argument('key', type=str, required=True, help='API Key')
 		self.parser.add_argument('timestamp')
-		self.parser.add_argument('languages', action='append')
+		self.parser.add_argument('language', default='en', type=str, help='provide language of tweets. example: ar/en')
 		self.parser.add_argument('areas')
 		with open("resources/apiconfig.yml",'r') as f:
 			cfg = yaml.load(f)
 		redis_host = cfg['redis']['host']
 		redis_port = cfg['redis']['port']
 		redis_hostname = cfg['redis']['hostname']
-		redis_located_channel = cfg['redis']['channels']['located_tweets']
+		redis_located_en_channel = cfg['redis']['channels']['located_tweets']
+		redis_located_ar_channel = cfg['redis']['channels']['located_arabic_traffic_tweets']
 		self.redis_db = redis.Redis(host=redis_host, port=redis_port)
-		self.redis_located_tweets_channel = '{0}:{1}'.format(redis_hostname,redis_located_channel)
+		self.redis_located_en_tweets_channel = '{0}:{1}'.format(redis_hostname,redis_located_en_channel)
+		self.redis_located_ar_tweets_channel = '{0}:{1}'.format(redis_hostname,redis_located_ar_channel)
 
 	def get(self):
 		args = self.parser.parse_args()
 		count = args['count']
 		key = args['key']
+		language = args['language']
 		if not self.verify_key(key):
 			abort(401, message="Unauthorized user")
-		tweets = self._get_tweets(count)
+		tweets = self._get_tweets(count, language)
 		output = dict()
 		output['res'] = tweets
 		output['nb_tweets'] = len(tweets)
@@ -117,11 +120,15 @@ class TrafficTweets(Resource):
 		return output, 200
 
 	@marshal_with(tweet_fields)
-	def _get_tweets(self, count):
+	def _get_tweets(self, count, language):
 		""" retrieve a list of tweets
 		:rtype : list of tweets
 		"""
-		tweets = [json.loads(tw) for tw in self.redis_db.lrange(self.redis_located_tweets_channel, -count, -1)]
+		tweets = []
+		if language == 'en':
+			tweets = [json.loads(tw) for tw in self.redis_db.lrange(self.redis_located_en_tweets_channel, -count, -1)]
+		elif language == 'ar':
+			tweets = [json.loads(tw) for tw in self.redis_db.lrange(self.redis_located_ar_tweets_channel, -count, -1)]
 		return tweets
 
 	@staticmethod

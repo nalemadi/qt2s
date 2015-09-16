@@ -25,5 +25,5 @@ api.add_resource(GenerateKey, '/api/v1/access/generate_key', endpoint="keys")
 if __name__ == '__main__':
 	if not os.path.exists('qt2s.sqlite'):
 		db.create_all()
-	app.run(debug=False)
+	app.run(debug=True)
 

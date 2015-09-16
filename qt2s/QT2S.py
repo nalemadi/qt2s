@@ -37,6 +37,7 @@ REDIS_DB = redis.Redis(host=cfg['redis']['host'], port=cfg['redis']['port'])
 
 KEYWORD_DICT_FILE = 'data/traffic_dict.csv'
 GEOCODED_LOCATION_DICT_FILE = 'data/geolocated_locations.txt'
+GEOCODED_LOCATION_AR_DICT_FILE = 'data/geolocated_locations_ar.txt'
 SLANG_DICT_FILE = 'data/slang_dict.csv'
 
 TWITTER_KEY = {'consumer_key': cfg['online_keys']['twitter']['consumer_key'], 'consumer_secret': cfg['online_keys']['twitter']['consumer_secret'],
@@ -157,7 +158,7 @@ def classify_arabic_tweets():
 			continue
 		data = data[1]
 		logger.debug("READ from redis [type:%s]: %s", type(data), data)
-		data = json.load(data)
+		data = json.loads(data)
 		if arabic_tweet_classifier.is_about_traffic(data):
 			data['is_about_traffic'] = True
 			REDIS_DB.rpush(write_channel, json.dumps(data))
@@ -178,7 +179,7 @@ def extract_entities():
 	non_located_traffic_tweets_channel = '%s:%s' % (REDIS_NAMESPACE, REDIS_NAME_NON_LOCATED_TRAFFIC_TWEETS)
 
 	twitter_location_er = TwitterLocationER(location_dictionary_file=GEOCODED_LOCATION_DICT_FILE)
-	location_geocoding = LocationGeocoding(google_key=GOOGLE_KEY, bing_key=BING_KEY, country_code='QA',\
+	location_geocoding = LocationGeocoding('en', google_key=GOOGLE_KEY, bing_key=BING_KEY, country_code='QA',
 										   geocoded_location_file=GEOCODED_LOCATION_DICT_FILE)
 	slang_detection = SlangDetection(slang_dictionary_file=SLANG_DICT_FILE)
 	logger.info("Starting LocationTagger. Will read from %s and write into %s", read_channel, write_channel)
@@ -216,8 +217,8 @@ def extract_ar_entities():
 	write_channel = '%s:%s' % (REDIS_NAMESPACE, REDIS_NAME_LOCATED_ARABIC_TRAFFIC_TWEETS)
 	non_located_arabic_traffic_tweets_channel = '%s:%s' % (REDIS_NAMESPACE, REDIS_NAME_NON_LOCATED_ARABIC_TRAFFIC_TWEETS)
 
-	arabic_twitter_location_er = ArabicTwitterLocationER()
-	location_geocoding = LocationGeocoding(google_key=GOOGLE_KEY, bing_key=BING_KEY, country_code='QA',geocoded_location_file=GEOCODED_LOCATION_DICT_FILE)
+	arabic_twitter_location_er = ArabicTwitterLocationER(location_dictionary_ar_file=GEOCODED_LOCATION_AR_DICT_FILE)
+	location_geocoding = LocationGeocoding('ar', google_key=GOOGLE_KEY, bing_key=BING_KEY, country_code='QA',geocoded_location_file=GEOCODED_LOCATION_AR_DICT_FILE)
 
 	while True:
 		data = REDIS_DB.blpop(read_channel)
@@ -225,15 +226,17 @@ def extract_ar_entities():
 			continue
 		data = data[1]
 		data = json.loads(data)
-		is_qatar_doha_expression_exist = arabic_twitter_location_er.is_tweet_has_local_expressions(data['text'].lower())
+		locations = arabic_twitter_location_er.find_locations(data['text'])
+		#is_qatar_doha_expression_exist = arabic_twitter_location_er.is_tweet_has_local_expressions(data['text'].lower())
 		is_from_qatar = location_geocoding.is_tweet_from_qatar(data)
-
-		if is_from_qatar or is_qatar_doha_expression_exist:
-			data['is_from_qatar'] = True
+		print data
+		if len(locations) > 0:
+			geocoded_locations = [location_geocoding.geocode_location(location) for location in locations]
+			data['is_from_qatar'] = is_from_qatar
 			data['contains_traffic_locations'] = True
+			data['traffic_locations'] = geocoded_locations
 			REDIS_DB.rpush(write_channel, json.dumps(data))
 		else:
-			data['is_from_qatar'] = False
 			data['contains_traffic_locations'] = False
 			REDIS_DB.rpush(non_located_arabic_traffic_tweets_channel, json.dumps(data))
 			REDIS_DB.ltrim(non_located_arabic_traffic_tweets_channel, -1000000, -1)

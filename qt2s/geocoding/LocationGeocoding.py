@@ -8,17 +8,27 @@ import json
 import logging
 import googlemaps
 from googlemaps.exceptions import ApiError, TransportError, Timeout, HTTPError
-from resources.resources import clean_text
+from qt2s.resources.resources import clean_text
 
 logger = logging.getLogger('__name__')
 
 
 class LocationGeocoding:
-	def __init__(self, google_key=None, bing_key=None, country_code='QA', geocoded_location_file=None):
+	QATAR_DOHA_TEXT_EN = ' Doha Qatar'
+	QATAR_TEXT_EN = 'Qatar'
+	QATAR_DOHA_TEXT_AR = u' الدوحة قطر'
+
+	def __init__(self, language, google_key=None, bing_key=None, country_code='QA', geocoded_location_file=None):
+		self.language = language
 		self.geocoded_location_files = geocoded_location_file
 		self.google_key = google_key
 		self.bing_key = bing_key
 		self.country_code = country_code
+		if language == 'en':
+			self.qatar_doha_query = self.QATAR_DOHA_TEXT_EN
+		elif language == 'ar':
+			self.qatar_doha_query = self.QATAR_DOHA_TEXT_AR
+
 		self.geocoded_locations = dict()
 		if geocoded_location_file is None:
 			print 'None file'
@@ -32,7 +42,7 @@ class LocationGeocoding:
 
 	def google_geocoding(self, location):
 		"""
-		Use GoogleMaps api to geocode a location.
+		Using GoogleMaps api to geocode a location.
 		:param location: text describing a location name
 		:return: a location object with: formatted_address, lat, lng attributes
 		"""
@@ -61,11 +71,12 @@ class LocationGeocoding:
 
 	def bing_geocoding(self, location):
 		"""
+		Using Bing Map api to geocode a location
 		:param location:
 		:return:
 		"""
 		basepath = 'http://dev.virtualearth.net/REST/v1/Locations?'
-		location += ' Doha Qatar'
+		location += self.qatar_doha_query.encode('utf-8')
 		formattedQuery = urllib.quote(location)
 		requestURL = '{}q={}&key={}'.format(basepath, formattedQuery, self.bing_key)
 		#print requestURL
@@ -93,6 +104,11 @@ class LocationGeocoding:
 		return  self._format_bing_location(results[indx])
 
 	def nominatim_geocoding(self, location):
+		"""
+		Using nominatim to geocode a location
+		:param location:
+		:return:
+		"""
 		location += ' '+'Qatar'
 		basepath = "[REDACTED_URL]     "
 		params = {"addressdetails":1,"format":"json", "country":"QA", "q":location}
@@ -159,6 +175,11 @@ class LocationGeocoding:
 		return location
 
 	def _format_bing_location(self, b_location):
+		"""
+		Extracts relevant information from bingmap result
+		:param b_location:
+		:return: dictionary of a location with: formatted_address, lat, lng
+		"""
 		if 'address' not in b_location.keys() or 'formattedAddress' not in b_location['address'].keys():
 			return None
 		if 'point' not in b_location.keys() or 'coordinates' not in b_location['point'].keys():
@@ -171,6 +192,11 @@ class LocationGeocoding:
 		return location
 
 	def _format_nominatim_format(self, n_location):
+		"""
+		Extracts relevant information from nominatim result
+		:param n_location:
+		:return: dictionary of a location with: formatted_address, lat, lng
+		"""
 		if 'display_name' not in n_location.keys():
 			return None
 		if 'lon' not in n_location.keys():
@@ -207,21 +233,22 @@ class LocationGeocoding:
 			return None
 
 	def bash_geocoding(self):
-		""" Returns the different geocoordinates of a set of locations.
+		"""
+		Returns the different geocoordinates of a set of locations.
 		@author: Noora
 		:return: a file in which each line contains the geo coordinates of a given location.
 		"""
 
 		# open location_dict
 		locations = []
-		location_dic_file = open('../data/location_dict.csv')
+		location_dic_file = open('../data/location_dict_ar.txt')
 		for line in location_dic_file:
-			x = line.split(';')
-			loc = x[2].strip()
-			locations.append(loc)
+			#x = line.split(';')
+			#loc = x[2].strip()
+			locations.append(line.strip())
 		location_dic_file.close()
 
-		geolocated_locations_file = open('../data/geolocated_locations.txt', 'w')
+		geolocated_locations_file = open('../data/geolocated_locations_ar.txt', 'w')
 		for location in locations:
 			location_dict = dict()
 			location_dict['name'] = location
@@ -273,6 +300,7 @@ class LocationGeocoding:
 
 		location_dict = dict()
 		location_dict['name'] = location
+		location = location.encode('utf-8')
 		googleResult = self.google_geocoding_from_scratch(location)
 		bingResult = self.bing_geocoding(location)
 		nominatimResult = self.nominatim_geocoding(location)
@@ -322,6 +350,10 @@ class LocationGeocoding:
 
 	@staticmethod
 	def get_qatar_locations():
+		"""
+		not used currently
+		:return:
+		"""
 		locations = []
 		with open('data/geolocated_locations.txt') as f:
 			for line in f:
@@ -336,7 +368,7 @@ if __name__ == '__main__':
 	GOOGLE_KEY = '[REDACTED]'
 	BING_KEY = '[REDACTED]'
 	GEOCODED_LOCATION_DICT_FILE = '../data/geolocated_locations.txt'
-	lg = LocationGeocoding(google_key=GOOGLE_KEY, bing_key=BING_KEY, country_code='QA', geocoded_location_file=GEOCODED_LOCATION_DICT_FILE)
+	lg = LocationGeocoding('en', google_key=GOOGLE_KEY, bing_key=BING_KEY, country_code='QA', geocoded_location_file=GEOCODED_LOCATION_DICT_FILE)
 
 	#print lg.request_online_geocodes('Landmark')
 	# Geocode all streets.
@@ -349,5 +381,3 @@ if __name__ == '__main__':
 	# 	x = lg.request_online_geocodes(st)
 	# 	outputfile.write(json.dumps(x)+'\n')
 	# outputfile.close()
-
-
