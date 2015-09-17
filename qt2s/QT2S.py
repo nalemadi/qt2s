@@ -150,8 +150,8 @@ def classify_arabic_tweets():
 	read_channel = '%s:%s' % (REDIS_NAMESPACE, REDIS_NAME_RAW_ARABIC_TWEETS)
 	write_channel = '%s:%s' % (REDIS_NAMESPACE, REDIS_NAME_TRAFFIC_ARABIC_TWEETS)
 	non_relevant_arabic_tweets_channel = '%s:%s' % (REDIS_NAMESPACE, REDIS_NAME_NON_TRAFFIC_ARABIC_TWEETS)
-	arabic_tweet_classifier = ArabicTwitterClassifier()
-	logger.info("Starting Classifier. Will read from %s and write into %s", read_channel, write_channel)
+	arabic_tweet_classifier = ArabicTwitterClassifier(method='Keyword', keyword_dictionary_file=KEYWORD_DICT_FILE)
+	logger.info("Starting Arabic Classifier. Will read from %s and write into %s", read_channel, write_channel)
 	while True:
 		data = REDIS_DB.blpop(read_channel)
 		if len(data) != 2:

@@ -3,6 +3,7 @@ __author__ = 'sofiane'
 import string
 import re
 from nltk.tokenize import word_tokenize, sent_tokenize
+from nltk.tokenize import RegexpTokenizer
 
 
 def clean_text(text):
@@ -21,3 +22,15 @@ def clean_text(text):
 	# TODO: make sure we want to keep this one - 3. remove non ascii characters
 	#text = ''.join([c for c in text if c in string.printable])
 	return text
+
+def clean_ar_text(text):
+	"""
+	for Arabic text
+	Cleans a text by removing punctuations, urls, and non ascii characters.
+	:param text: input text
+	:return: clean text
+	"""
+	text = re.sub(r"http\S+", "", text)
+	tokenizer = RegexpTokenizer(r'\w+')
+	text = [word for sent in sent_tokenize(text) for word in tokenizer.tokenize(sent) if not word.isdigit()]
+	return ' '.join(text)
