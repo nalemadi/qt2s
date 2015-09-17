@@ -6,18 +6,18 @@ import multiprocessing
 import subprocess
 import os
 from datetime import datetime
-
-import redis
 import yaml
 
-from TwitterCollector import TwitterCollector
+import redis
+
+from collector.TwitterCollector import TwitterCollector
 from traffic_classifier.TwitterClassifier import TwitterClassifier
-from TwitterLocationER import TwitterLocationER
-from TwitterPersister import TwitterPersister
-from SlangDetection import SlangDetection
+from location_recognition.TwitterLocationER import TwitterLocationER
+from persister.TwitterPersister import TwitterPersister
+from resources.SlangDetection import SlangDetection
 from geocoding.LocationGeocoding import LocationGeocoding
 from traffic_classifier.ArabicTwitterClassifier import ArabicTwitterClassifier
-from ArabicTwitterLocationER import ArabicTwitterLocationER
+from location_recognition.ArabicTwitterLocationER import ArabicTwitterLocationER
 
 with open("resources/qt2sconfig.yml", 'r') as f:
 	cfg = yaml.load(f)
@@ -53,7 +53,7 @@ PERSISTER_FOLDER = cfg['persister_folder']
 # TODO: turn logging level to INFO before deploying into production.
 logging.basicConfig(filename=LOG_FILE_LOCATION,
 			format='%(levelname)s: %(module)s: %(funcName)s: %(message)s',
-			level=logging.DEBUG)
+			level=logging.INFO)
 logger = logging.getLogger('__name__')
 
 
@@ -229,7 +229,6 @@ def extract_ar_entities():
 		locations = arabic_twitter_location_er.find_locations(data['text'])
 		#is_qatar_doha_expression_exist = arabic_twitter_location_er.is_tweet_has_local_expressions(data['text'].lower())
 		is_from_qatar = location_geocoding.is_tweet_from_qatar(data)
-		print data
 		if len(locations) > 0:
 			geocoded_locations = [location_geocoding.geocode_location(location) for location in locations]
 			data['is_from_qatar'] = is_from_qatar

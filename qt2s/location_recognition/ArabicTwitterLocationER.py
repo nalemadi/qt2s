@@ -5,7 +5,7 @@ __author__ = 'noora'
 
 import logging
 
-from resources.resources import clean_text
+from resources.resources import clean_ar_text
 import json
 
 logger = logging.getLogger('__name__')
@@ -22,7 +22,7 @@ class ArabicTwitterLocationER:
 					continue
 				location = json.loads(line)
 				locations.append(location['name'].lower())
-		self.locations = [clean_text(location) for location in locations]
+		self.locations = [clean_ar_text(location) for location in locations]
 		logger.info('New Instance\n Arabic Locations considered: %s', self.locations)
 
 	def find_locations(self, text):
@@ -34,7 +34,7 @@ class ArabicTwitterLocationER:
 		:return: set of locations found in the text.
 		"""
 		found_locations = set()
-		text = clean_text(text.lower())
+		text = clean_ar_text(text.lower())
 		#twords = text.split()
 		for location in self.locations:
 			if location in text:

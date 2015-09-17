@@ -1,7 +1,7 @@
 __author__ = 'noora'
 
 import logging
-from qt2s.resources.resources import clean_ar_text
+from resources.resources import clean_ar_text
 logger = logging.getLogger(__name__)
 
 
@@ -11,7 +11,7 @@ class ArabicTwitterClassifier:
 		if method == 'keyword' and not keyword_dictionary_file:
 			logger.error('Error: you should provide a path to the keywords file')
 			raise Exception('Error: you should provide a path to the keywords file')
-		self.keywords = [clean_ar_text(w.strip().lower()) for w in open(keyword_dictionary_file).read().split(',')]
+		self.keywords = [clean_ar_text(w.decode('utf-8').strip().lower()) for w in open(keyword_dictionary_file).read().split('\n')]
 
 		if method == 'classifier' and not model:
 			logger.error('Error: you should provide a path to the classifier model')
