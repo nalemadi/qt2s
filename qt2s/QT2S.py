@@ -50,7 +50,6 @@ LOG_FILE_LOCATION = cfg['logfile']
 PERSISTER_FOLDER = cfg['persister_folder']
 
 # Initialize the logger
-# TODO: turn logging level to INFO before deploying into production.
 logging.basicConfig(filename=LOG_FILE_LOCATION,
 			format='%(levelname)s: %(module)s: %(funcName)s: %(message)s',
 			level=logging.INFO)
