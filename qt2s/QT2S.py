@@ -50,10 +50,9 @@ LOG_FILE_LOCATION = cfg['logfile']
 PERSISTER_FOLDER = cfg['persister_folder']
 
 # Initialize the logger
-# TODO: turn logging level to INFO before deploying into production.
 logging.basicConfig(filename=LOG_FILE_LOCATION,
 			format='%(levelname)s: %(module)s: %(funcName)s: %(message)s',
-			level=logging.INFO)
+			level=logging.DEBUG)
 logger = logging.getLogger('__name__')
 
 
@@ -266,7 +265,7 @@ def persist_tweets(redis_channel, folder_name):
 
 if __name__ == '__main__':
 	logger.info('\n\n=================\n\nNEW INSTANCE\n-------------\n-->Started on: %s\n', datetime.now())
-	print 'start'
+	
 	collector = multiprocessing.Process(name='Collector', target=collect_tweets)
 	collector.start()
 
