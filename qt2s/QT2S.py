@@ -265,7 +265,7 @@ def persist_tweets(redis_channel, folder_name):
 
 if __name__ == '__main__':
 	logger.info('\n\n=================\n\nNEW INSTANCE\n-------------\n-->Started on: %s\n', datetime.now())
-	print 'start'
+	
 	collector = multiprocessing.Process(name='Collector', target=collect_tweets)
 	collector.start()
 
