@@ -1,16 +1,16 @@
+
 #body {
 	width:1000px;
 	margin:0 auto;
 	}
 
 #header {
-	background-color:teal;
+	background-image: url("../img/Doha.png");
 	font-family:Courier;
 	color:white;
-	height:100px;
+	height:300px;
 	width:1000px;
 	text-align:center;
-	font-size:20px;
 	}
 
 #container {
@@ -36,7 +36,7 @@
 	background-color:#F2671F;
 	float:left;
 	height:310px;
-	width:480px;
+	width:1000px;
 	box-shadow: 10px 10px 5px #888888
 	}
 #trends_title {
@@ -56,31 +56,35 @@
 	margin:20px auto;
 	box-shadow: 10px 10px 5px #888888
 	}
+
 #maps_title {
 	background-color:orange;
 	color:black;
 	text-align:center;
 	}
+
 #maps_content {
 	height:490px;
 	width:1000px;
 	}
 
 #pophashtags {
-	background-color:AntiqueWhite;
 	height:310px;
-	width:490px;
+	width:1000px;
 	float:right;
+	margin-top: 20px;
 	box-shadow: 10px 10px 5px #888888;
 	}
+
 #pophashtags_title {
 	background-color:orange;
 	color:black;
 	text-align:center;
 	}
+
 #pophashtags_content{
 	height:290px;
-	width:490px;
+	width:100%;
 	}
 
 #tweets {
@@ -89,11 +93,13 @@
 	margin:20px auto;
 	box-shadow: 10px 10px 5px #888888
 	}
+
 #retweets_title {
 	background-color:orange;
 	color:black;
 	text-align:center;
 	}
+
 #retweets_content {
 	height:290px;
 	width:1000px;
