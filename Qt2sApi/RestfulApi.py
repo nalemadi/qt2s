@@ -4,7 +4,7 @@ import os
 
 from flask import Flask
 from flask_restful import Api
-from resources.TrafficTweets import TrafficTweets
+from resources.TrafficRecentTweets import TrafficRecentTweets, TrafficSearchTweets
 from resources.GenerateKey import GenerateKey
 from common.database import db
 
@@ -19,7 +19,8 @@ with app.test_request_context():
 
 api = Api(app)
 
-api.add_resource(TrafficTweets, '/api/v1/tweets/recent', endpoint="tweets")
+api.add_resource(TrafficRecentTweets, '/api/v1/tweets/recent', endpoint="recent_tweets")
+api.add_resource(TrafficSearchTweets, '/api/v1/tweets/search', endpoint="matching_tweets")
 api.add_resource(GenerateKey, '/api/v1/access/generate_key', endpoint="keys")
 
 if __name__ == '__main__':
