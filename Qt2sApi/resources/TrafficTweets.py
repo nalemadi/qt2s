@@ -70,7 +70,6 @@ tweet_fields = {
 	'user_name': user_name,
 	'user_screen_name': user_screen_name,
 	'user_url_picture': user_url_picture,
-	# 'is_from_qatar': fields.Boolean(default=False),
 	'contains_bad_words': fields.Boolean(default=False),
 	'bad_words': fields.List(fields.String),
 	'is_about_traffic': fields.Boolean(attribute='is_about_traffic'),
