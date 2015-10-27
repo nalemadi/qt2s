@@ -328,4 +328,3 @@ class TrafficSearchTweets(Resource):
 		if ts >= fromts and ts <= tots:
 			return True
 		return False
-
