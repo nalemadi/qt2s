@@ -159,7 +159,6 @@ class TrafficRecentTweets(Resource):
 			tweet = self.redis_db.lindex(redis_queue, i)
 			tweet = json.loads(tweet)
 			for q in query:
-				print 'Keyword:', q
 				if q.lower() in tweet['text'].lower():
 					tweets.append(tweet)
 					break
@@ -324,7 +323,6 @@ class TrafficSearchTweets(Resource):
 	@staticmethod
 	def tweet_in_interval(tweet, fromts, tots):
 		ts = datetime.fromtimestamp(int(tweet['timestamp_ms']) / 1000).strftime('%Y-%m-%d %H:%M')
-		print ts
 		if ts >= fromts and ts <= tots:
 			return True
 		return False
