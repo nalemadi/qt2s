@@ -9,6 +9,7 @@ logger = logging.getLogger('__name__')
 
 
 class TwitterPersister:
+
 	def __init__(self, persister_folder=None, file_size=100000):
 		if persister_folder is None:
 			raise Exception("Please provide a folder in which files will be stored")

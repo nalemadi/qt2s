@@ -52,7 +52,7 @@ PERSISTER_FOLDER = cfg['persister_folder']
 # Initialize the logger
 logging.basicConfig(filename=LOG_FILE_LOCATION,
 			format='%(levelname)s: %(module)s: %(funcName)s: %(message)s',
-			level=logging.INFO)
+			level=logging.DEBUG)
 logger = logging.getLogger('__name__')
 
 

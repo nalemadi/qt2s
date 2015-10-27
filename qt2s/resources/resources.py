@@ -27,6 +27,7 @@ def clean_ar_text(text):
 	"""
 	for Arabic text
 	Cleans a text by removing punctuations, urls, and non ascii characters.
+	This method also uses regex-based tokenizer and removes all non words from the text.
 	:param text: input text
 	:return: clean text
 	"""
