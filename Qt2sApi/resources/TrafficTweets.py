@@ -105,15 +105,22 @@ class TrafficRecentTweets(Resource):
 		count = args['count']
 		key = args['key']
 		language = args['language']
-		query = args['q']
+		query = args['filter']
+
+		if language == 'en':
+			redis_channel = self.redis_located_en_tweets_channel
+		elif language == 'ar':
+			redis_channel = self.redis_located_ar_tweets_channel
+
 		if not self.verify_key(key):
 			abort(401, message="Unauthorized user")
 
 		if query:
-			print 'Query keywords:', query
-			tweets = self._get_filtered_tweets(query, language, count)
+			# Consider a query in the format: [u'[keyword1,keyword2,keyword3,...]']
+			query = [w.strip() for w in query[0].split(',')]
+			tweets = self._get_filtered_tweets(query, redis_channel, count)
 		else:
-			tweets = self._get_tweets(count, language)
+			tweets = self._get_tweets(redis_channel, count)
 
 		output = dict()
 		output['res'] = tweets
@@ -130,36 +137,25 @@ class TrafficRecentTweets(Resource):
 		return output, 200
 
 	@marshal_with(tweet_fields)
-	def _get_tweets(self, count, language):
-		""" retrieve a list of tweets
+	def _get_tweets(self, redis_queue, count):
+		""" retrieve a list of "count" tweets from the input redis_queue
 		:rtype : list of tweets
 		"""
-		tweets = []
-		if language == 'en':
-			tweets = [json.loads(tw) for tw in self.redis_db.lrange(self.redis_located_en_tweets_channel, -count, -1)]
-		elif language == 'ar':
-			tweets = [json.loads(tw) for tw in self.redis_db.lrange(self.redis_located_ar_tweets_channel, -count, -1)]
+
+		tweets = [json.loads(tw) for tw in self.redis_db.lrange(redis_queue, -count, -1)]
 		return tweets
 
 	@marshal_with(tweet_fields)
-	def _get_filtered_tweets(self, query, language, count):
+	def _get_filtered_tweets(self, query, redis_queue, count):
 		"""
 		Retrieves all the tweets that match one of the keywords in query
 		:param query: list of keywords
 		:return: list of tweets
 		"""
+
+		queue_len = self.redis_db.llen(redis_queue)
 		tweets = []
-		if language == 'en':
-			redis_queue = self.redis_located_en_tweets_channel
-		elif language == 'ar':
-			redis_queue = self.redis_located_ar_tweets_channel
-
-		len = self.redis_db.llen(redis_queue)
-		# Consider a query in the format: [u'[keyword1,keyword2,keyword3,...]']
-		query = [w.strip() for w in query[0].split(',')]
-
-		for i in reversed(range(len)):
-			# get each tweet, and check if it matches one of the keywords:
+		for i in reversed(range(queue_len)):
 			tweet = self.redis_db.lindex(redis_queue, i)
 			tweet = json.loads(tweet)
 			for q in query:
@@ -189,7 +185,7 @@ class TrafficSearchTweets(Resource):
 		self.parser.add_argument('q', action='append', required=True, help='query terms')
 		self.parser.add_argument('from', type=str, help='tweets posted after this datetime: yyyy-mm-dd hh:mm')
 		self.parser.add_argument('to', type=str, help='tweets posted before this datetime: yyyy-mm-dd hh:mm')
-
+		self.parser.add_argument('since', type=str, help='tweets posted since this datetime: yyyy-mm-dd hh:mm')
 
 		with open("resources/apiconfig.yml",'r') as f:
 			cfg = yaml.load(f)
@@ -203,16 +199,32 @@ class TrafficSearchTweets(Resource):
 		self.redis_located_ar_tweets_channel = '{0}:{1}'.format(redis_hostname,redis_located_ar_channel)
 
 	def get(self):
+		# Get the parameters
 		args = self.parser.parse_args()
 		key = args['key']
 		language = args['language']
 		query = args['q']
 		fromts = args['from']
 		tots = args['to']
+		since = args['since']
+
 		if not self.verify_key(key):
 			abort(401, message="Unauthorized user")
 
-		tweets = self._get_filtered_tweets(query, language, fromts, tots)
+		# Consider a query in the format: [u'[keyword1,keyword2,keyword3,...]']
+		query = [w.strip() for w in query[0].split(',')]
+
+		if language == 'en':
+			redis_channel = self.redis_located_en_tweets_channel
+		elif language == 'ar':
+			redis_channel = self.redis_located_ar_tweets_channel
+
+		if fromts and tots:
+			tweets = self._get_filtered_tweets(query, redis_channel, fromts, tots)
+		elif since:
+			tweets = self._get_filtered_tweets(query, redis_channel, since)
+		else:
+			tweets = self._get_filtered_tweets(query, redis_channel)
 
 		output = dict()
 		output['res'] = tweets
@@ -229,35 +241,73 @@ class TrafficSearchTweets(Resource):
 		# End API monitoring
 		return output, 200
 
-
 	@marshal_with(tweet_fields)
-	def _get_filtered_tweets(self, query, language, fromts=None, tots=None):
+	def _get_filtered_tweets(self, query, redis_queue):
 		"""
 		Retrieves all the tweets that match one of the keywords in query
 		:param query: list of keywords
 		:return: list of tweets
 		"""
-		tweets = []
-		if language == 'en':
-			redis_queue = self.redis_located_en_tweets_channel
-		elif language == 'ar':
-			redis_queue = self.redis_located_ar_tweets_channel
 
 		queue_len = self.redis_db.llen(redis_queue)
-
-		# Consider a query in the format: [u'[keyword1,keyword2,keyword3,...]']
-		query = [w.strip() for w in query[0].split(',')]
-
+		tweets = []
 		for i in reversed(range(queue_len)):
-			# get each tweet, and check if it matches one of the keywords:
 			tweet = self.redis_db.lindex(redis_queue, i)
 			tweet = json.loads(tweet)
 			for q in query:
 				if q.lower() in tweet['text'].lower():
-					if not (fromts and tots):
-						tweets.append(tweet)
-					elif self.tweet_in_interval(tweet, fromts, tots):
-						tweets.append(tweet)
+					tweets.append(tweet)
+					break
+		return tweets
+
+	@marshal_with(tweet_fields)
+	def _get_filtered_tweets(self, query, redis_queue, since):
+		"""
+		Retrieves all the tweets posted after "since" that match one of the keywords in query
+		:param query: list of keywords
+		:return: list of tweets
+		"""
+
+		queue_len = self.redis_db.llen(redis_queue)
+		tweets = []
+		for i in reversed(range(queue_len)):
+			tweet = self.redis_db.lindex(redis_queue, i)
+			tweet = json.loads(tweet)
+			ts = datetime.fromtimestamp(int(tweet['timestamp_ms']) / 1000).strftime('%Y-%m-%d %H:%M')
+			# IMPORTANT: stop looking for tweets beyond the since limit
+			if ts < since:
+				break
+
+			for q in query:
+				if q.lower() in tweet['text'].lower():
+					tweets.append(tweet)
+					break
+		return tweets
+
+	@marshal_with(tweet_fields)
+	def _get_filtered_tweets(self, query, redis_queue, fromts, tots):
+		"""
+		Retrieves all the tweets that match one of the keywords in query, and that are posted in
+		the interval [fromts, tots].
+		:param query: list of keywords
+		:return: list of tweets
+		"""
+
+		queue_len = self.redis_db.llen(redis_queue)
+		tweets = []
+		for i in reversed(range(queue_len)):
+			tweet = self.redis_db.lindex(redis_queue, i)
+			tweet = json.loads(tweet)
+			ts = datetime.fromtimestamp(int(tweet['timestamp_ms']) / 1000).strftime('%Y-%m-%d %H:%M')
+			# IMPORTANT: stop looking for tweets beyond the from limit, and do not treat tweets after tots
+			if ts < fromts:
+				break
+			elif ts > tots:
+				continue
+
+			for q in query:
+				if q.lower() in tweet['text'].lower():
+					tweets.append(tweet)
 					break
 		return tweets
 

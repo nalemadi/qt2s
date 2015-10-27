@@ -4,7 +4,7 @@ import os
 
 from flask import Flask
 from flask_restful import Api
-from resources.TrafficRecentTweets import TrafficRecentTweets, TrafficSearchTweets
+from resources.TrafficTweets import TrafficRecentTweets, TrafficSearchTweets
 from resources.GenerateKey import GenerateKey
 from common.database import db
 
