@@ -220,9 +220,9 @@ class TrafficSearchTweets(Resource):
 			redis_channel = self.redis_located_ar_tweets_channel
 
 		if fromts and tots:
-			tweets = self._get_filtered_tweets(query, redis_channel, fromts, tots)
+			tweets = self._get_filtered_tweets_from_to(query, redis_channel, fromts, tots)
 		elif since:
-			tweets = self._get_filtered_tweets(query, redis_channel, since)
+			tweets = self._get_filtered_tweets_since(query, redis_channel, since)
 		else:
 			tweets = self._get_filtered_tweets(query, redis_channel)
 
@@ -261,7 +261,7 @@ class TrafficSearchTweets(Resource):
 		return tweets
 
 	@marshal_with(tweet_fields)
-	def _get_filtered_tweets(self, query, redis_queue, since):
+	def _get_filtered_tweets_since(self, query, redis_queue, since):
 		"""
 		Retrieves all the tweets posted after "since" that match one of the keywords in query
 		:param query: list of keywords
@@ -285,7 +285,7 @@ class TrafficSearchTweets(Resource):
 		return tweets
 
 	@marshal_with(tweet_fields)
-	def _get_filtered_tweets(self, query, redis_queue, fromts, tots):
+	def _get_filtered_tweets_from_to(self, query, redis_queue, fromts, tots):
 		"""
 		Retrieves all the tweets that match one of the keywords in query, and that are posted in
 		the interval [fromts, tots].
