@@ -1,0 +1,10 @@
+redis:
+    host: [REDACTED]
+    port: 6379
+    hostname: QT2S
+    channels:
+        raw_tweets: raw_tweets
+        traffic_tweets: traffic_tweets
+        non_traffic_tweets: non_traffic_tweets
+        located_tweets: located_traffic_tweets
+        located_arabic_traffic_tweets: located_arabic_traffic_tweets
