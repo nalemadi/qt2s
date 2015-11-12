@@ -22,12 +22,13 @@ def is_from_qatar(tweet):
 	"""
 
 	# 1. get dictionaries:
-	qlocations = ['qatar', 'doha', 'al gharafa', 'al dafna', 'al dawha', 'al wakra', u'الدوحة', u'الدوحه', u'قطر']
-	qhashtags = ['dohatraffic', 'qatartraffic']
+	qlocations = ['qatar', 'doha', 'al gharafa', 'al dafna', 'al-dafna', 'al rayyan', 'al dawha', 'al wakra', 'corniche street',
+	              'souq waqif', 'toyota signal', 'najma', 'katara', 'salwa rd', 'salwa road', 'mohammed bin thani street', 'ramada', 'emiri diwan', u'الدوحة', u'الدوحه', u'قطر']
+	qhashtags = ['dohatraffic', 'qatartraffic', u'زحمهـالدوحة', u'زحمةـالدوحة', 'ashghal', 'souqwaqif', 'toyotasignal']
 	qmentions = ['dohatraffic', 'dohanews', 'iloveqatar','qatarliving','moi_qatarEn','ashghalqatar']
 
 	try:
-		text = tweet['text']
+		text = tweet['text'].lower()
 	except:
 		text = None
 	try:
