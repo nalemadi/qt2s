@@ -283,18 +283,18 @@ def optimized_run(inputfile, K=None, customer_name=None, table_ids_file=None):
 
 	# Trends
 	logger.info('Importing TRENDS')
-	#res = gft.import_rows(fusion_tables['timeline'].encode('utf-8'), trends_rows)
-	#logger.debug('Imported %s lines.', res['numRowsReceived'])
+	res = gft.import_rows(fusion_tables['timeline'].encode('utf-8'), trends_rows)
+	logger.debug('Imported %s lines.', res['numRowsReceived'])
 
 	# Users
 	logger.info('Importing USERS')
-	#res = gft.import_rows(fusion_tables['users'].encode('utf-8'), users_rows.encode('utf-8'))
-	#logger.debug('Imported %s lines.', res['numRowsReceived'])
+	res = gft.import_rows(fusion_tables['users'].encode('utf-8'), users_rows.encode('utf-8'))
+	logger.debug('Imported %s lines.', res['numRowsReceived'])
 
 	# Hashtags
 	logger.info('Importing HASHTAGS')
-	#res = gft.import_rows(fusion_tables['hashtags'].encode('utf-8'), hashtags_rows.encode('utf-8'))
-	#logger.debug('Imported %s lines.', res['numRowsReceived'])
+	res = gft.import_rows(fusion_tables['hashtags'].encode('utf-8'), hashtags_rows.encode('utf-8'))
+	logger.debug('Imported %s lines.', res['numRowsReceived'])
 
 	# Map
 	logger.info('Importing MAP Data')
@@ -303,15 +303,15 @@ def optimized_run(inputfile, K=None, customer_name=None, table_ids_file=None):
 
 	# Tweets
 	logger.info('Importing Tweets')
-	#res = gft.import_rows(fusion_tables['tweets'].encode('utf-8'), tweets_rows.encode('utf-8'))
-	#logger.debug('Imported %s lines.', res['numRowsReceived'])
+	res = gft.import_rows(fusion_tables['tweets'].encode('utf-8'), tweets_rows.encode('utf-8'))
+	logger.debug('Imported %s lines.', res['numRowsReceived'])
 
 
 
 if __name__ == '__main__':
 	tweets_file = '[REDACTED]qt2s/Qt2sDashboard/data/tweets_en.txt'
 	# The following command reads tweets from a file, process them, and writes them into different fusion tables.
-	optimized_run(tweets_file, customer_name='QT2S_MAP', K=200, table_ids_file=True)
+	# optimized_run(tweets_file, customer_name='QT2S_MAP', K=200, table_ids_file=True)
 
 	# Check if we are getting all tweets from Qatar:
 	# cpt = 0
