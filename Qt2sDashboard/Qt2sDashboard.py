@@ -211,7 +211,8 @@ def optimized_run(inputfile, K=None, customer_name=None, table_ids_file=None):
 				"\n\t2.Import data into the newly created fusion tables")
 
 	fusion_tables = {}
-	gft = FtAPI(client_secret_file='../conf/client_secrets.json', tokens_file='../conf/tokens.json')
+	basepath = '[REDACTED]qt2s/Qt2sDashboard/'
+	gft = FtAPI(client_secret_file=basepath+'resources/client_secrets.json', tokens_file=basepath+'resources/tokens.json')
 
 	# CREATE TABLES IF FIRST TIME.
 	if not table_ids_file:
@@ -274,55 +275,55 @@ def optimized_run(inputfile, K=None, customer_name=None, table_ids_file=None):
 		logger.info('Tweets table created: %s', response['tableId'])
 
 		# Persist fusion table IDS into a file
-		json.dump(fusion_tables, open('../conf/%s_tables.json' % customer_name, 'w'))
+		json.dump(fusion_tables, open(basepath+'resources/%s_tables.json' % customer_name, 'w'))
 
 	else:
 		# Get table ids from file
-		fusion_tables = json.load(open('../conf/%s_tables.json' % customer_name, 'r'))
+		fusion_tables = json.load(open(basepath+'resources/%s_tables.json' % customer_name, 'r'))
 
 	# Trends
 	logger.info('Importing TRENDS')
-	res = gft.import_rows(fusion_tables['timeline'].encode('utf-8'), trends_rows)
-	logger.debug('Imported %s lines.', res['numRowsReceived'])
+	#res = gft.import_rows(fusion_tables['timeline'].encode('utf-8'), trends_rows)
+	#logger.debug('Imported %s lines.', res['numRowsReceived'])
 
 	# Users
 	logger.info('Importing USERS')
-	res = gft.import_rows(fusion_tables['users'].encode('utf-8'), users_rows.encode('utf-8'))
-	logger.debug('Imported %s lines.', res['numRowsReceived'])
+	#res = gft.import_rows(fusion_tables['users'].encode('utf-8'), users_rows.encode('utf-8'))
+	#logger.debug('Imported %s lines.', res['numRowsReceived'])
 
 	# Hashtags
 	logger.info('Importing HASHTAGS')
-	res = gft.import_rows(fusion_tables['hashtags'].encode('utf-8'), hashtags_rows.encode('utf-8'))
-	logger.debug('Imported %s lines.', res['numRowsReceived'])
+	#res = gft.import_rows(fusion_tables['hashtags'].encode('utf-8'), hashtags_rows.encode('utf-8'))
+	#logger.debug('Imported %s lines.', res['numRowsReceived'])
 
 	# Map
 	logger.info('Importing MAP Data')
-	#res = gft.import_rows(fusion_tables['map'].encode('utf-8'), maps_rows.encode('utf-8'))
-	#logger.debug('Imported %s lines.', res['numRowsReceived'])
+	res = gft.import_rows(fusion_tables['map'].encode('utf-8'), maps_rows.encode('utf-8'))
+	logger.debug('Imported %s lines.', res['numRowsReceived'])
 
 	# Tweets
 	logger.info('Importing Tweets')
-	res = gft.import_rows(fusion_tables['tweets'].encode('utf-8'), tweets_rows.encode('utf-8'))
-	logger.debug('Imported %s lines.', res['numRowsReceived'])
+	#res = gft.import_rows(fusion_tables['tweets'].encode('utf-8'), tweets_rows.encode('utf-8'))
+	#logger.debug('Imported %s lines.', res['numRowsReceived'])
 
 
 
 if __name__ == '__main__':
-	tweets_file = 'data/tweets.txt'
+	tweets_file = '[REDACTED]qt2s/Qt2sDashboard/data/tweets_en.txt'
 	# The following command reads tweets from a file, process them, and writes them into different fusion tables.
-	#optimized_run(tweets_file, customer_name='QT2S_MAP', K=200, table_ids_file=True)
+	optimized_run(tweets_file, customer_name='QT2S_MAP', K=200, table_ids_file=True)
 
 	# Check if we are getting all tweets from Qatar:
-	cpt = 0
-	with open(tweets_file, 'r') as f:
-		for line in f:
-			try:
-				obj = json.loads(line)
-			except ValueError:
-				continue
-
-			if not is_from_qatar(obj):
-				continue
-			print obj['text']
-			cpt +=1
-	print '\n=================\nNB Tweets:%s\n=================' % cpt
+	# cpt = 0
+	# with open(tweets_file, 'r') as f:
+	# 	for line in f:
+	# 		try:
+	# 			obj = json.loads(line)
+	# 		except ValueError:
+	# 			continue
+	#
+	# 		if not is_from_qatar(obj):
+	# 			continue
+	# 		print obj['text']
+	# 		cpt +=1
+	# print '\n=================\nNB Tweets:%s\n=================' % cpt

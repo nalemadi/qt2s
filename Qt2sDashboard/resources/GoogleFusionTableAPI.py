@@ -23,7 +23,9 @@ class FtAPI:
 			self.get_tokens()
 
 	def _persist_tokens(self):
-		with open('../conf/tokens.json', 'w') as g:
+		basepath = '[REDACTED]qt2s/Qt2sDashboard/'
+
+		with open(basepath+'resources/tokens.json', 'w') as g:
 			json.dump({'access_token': self.access_token, 'refresh_token': self.refresh_token}, g)
 
 	def get_tokens(self):
@@ -108,13 +110,13 @@ class FtAPI:
 		#return self.runrequest('POST',url,data,headers)
 
 	def run_request(self, url, data=None, headers=None):
-		url = url + urllib.urlencode({'access_token': self.access_token, 'key': self.api_key})
+		url_new = url + urllib.urlencode({'access_token': self.access_token, 'key': self.api_key})
 		if data and headers:
-			request = urllib2.Request(url, data, headers)
+			request = urllib2.Request(url_new, data, headers)
 		elif data:
-			request = urllib2.Request(url, data)
+			request = urllib2.Request(url_new, data)
 		else:
-			request = urllib2.Request(url)
+			request = urllib2.Request(url_new)
 		try:
 			request_open = urllib2.urlopen(request)
 			response = request_open.read()
@@ -125,6 +127,13 @@ class FtAPI:
 				print '%s: %s - Needs to generate new tokens' % (e.code, e.reason)
 				self.get_new_token()
 				self.logger.info('Expired Token, generated a new one and re run the request')
+				url_new = url + urllib.urlencode({'access_token': self.access_token, 'key': self.api_key})
+				if data and headers:
+					request = urllib2.Request(url_new, data, headers)
+				elif data:
+					request = urllib2.Request(url_new, data)
+				else:
+					request = urllib2.Request(url_new)
 				try:
 					# resend the query
 					request_open = urllib2.urlopen(request)
@@ -155,7 +164,10 @@ class FtAPI:
 			print '\t\t Columns:%s' % ','.join(cols)
 
 if __name__ == "__main__":
-	api_test = FtAPI(client_secret_file='conf/client_secrets.json', tokens_file='conf/tokens.json')
+	basepath = '[REDACTED]qt2s/Qt2sDashboard/'
+
+	api_test = FtAPI(client_secret_file=basepath+'resources/client_secrets.json',
+					 tokens_file=basepath+'resources/tokens.json')
 	#sql = 'SELECT * FROM ' + tableid
 	#tables = api_test.get_tables()
 	#if tables:

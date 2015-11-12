@@ -4,7 +4,7 @@ import redis
 import json
 
 
-with open("../resources/remote_apiconfig.yml",'r') as f:
+with open("[REDACTED]qt2s/Qt2sDashboard/resources/remote_apiconfig.yml",'r') as f:
 	cfg = yaml.load(f)
 redis_host = cfg['redis']['host']
 redis_port = cfg['redis']['port']
@@ -27,7 +27,7 @@ def get_tweets(count, language):
 	return tweets
 
 tweets = get_tweets(3000, 'en')
-outfile = open('../data/tweets.txt', 'w')
+outfile = open('[REDACTED]qt2s/Qt2sDashboard/data/tweets_en.txt', 'w')
 for tw in tweets:
 	outfile.write(json.dumps(tw)+'\n')
 outfile.close()

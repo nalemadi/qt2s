@@ -53,7 +53,7 @@ class TwitterLocationER:
 		for location in self.locations:
 			if len(location.split()) > 1 and location in text:
 				found_locations.add(location)
-			elif len(location.split()) ==1 and location in twords:
+			elif len(location.split()) == 1 and location in twords:
 				found_locations.add(location)
 		logger.debug('Locations found: %s', found_locations)
 		return found_locations
