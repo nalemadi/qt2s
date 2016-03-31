@@ -241,20 +241,22 @@ class LocationGeocoding:
 
 		# open location_dict
 		locations = []
-		location_dic_file = open('../data/location_dict_ar.txt')
+		location_dic_file = open('../data/location_dict.txt')
 		for line in location_dic_file:
 			#x = line.split(';')
 			#loc = x[2].strip()
 			locations.append(line.strip())
 		location_dic_file.close()
 
-		geolocated_locations_file = open('../data/geolocated_locations_ar.txt', 'w')
+		geolocated_locations_file = open('../data/geolocated_locations.txt', 'w')
 		for location in locations:
+			broken = location.split(',')
+			location_name = broken[0]
 			location_dict = dict()
-			location_dict['name'] = location
-			googleResult = self.google_geocoding_from_scratch(location)
-			bingResult = self.bing_geocoding(location)
-			nominatimResult = self.nominatim_geocoding(location)
+			location_dict['name'] = location_name
+			googleResult = self.google_geocoding_from_scratch(location_name)
+			bingResult = self.bing_geocoding(location_name)
+			nominatimResult = self.nominatim_geocoding(location_name)
 
 			if bingResult is None and googleResult is None and nominatimResult is None:
 				coordinatesResult = None
@@ -262,6 +264,11 @@ class LocationGeocoding:
 				coordinatesResult = {'google': googleResult, 'bing': bingResult,'nominatim': nominatimResult}
 
 			location_dict['coordinates'] = coordinatesResult
+			if (len(broken) > 1):
+				broken.pop(0)
+			elif(len(broken) == 1):
+				broken = None
+			location_dict['alternatives'] = broken
 			#print location_dict
 			#print json.dumps(location_dict)
 			geolocated_locations_file.write(json.dumps(location_dict)+'\n')
@@ -369,7 +376,7 @@ if __name__ == '__main__':
 	BING_KEY = '[REDACTED]'
 	GEOCODED_LOCATION_DICT_FILE = '../data/geolocated_locations.txt'
 	lg = LocationGeocoding('en', google_key=GOOGLE_KEY, bing_key=BING_KEY, country_code='QA', geocoded_location_file=GEOCODED_LOCATION_DICT_FILE)
-
+	#lg.bash_geocoding()
 	#print lg.request_online_geocodes('Landmark')
 	# Geocode all streets.
 	# outputfile = open('../data/qatar_streets_roads_geocoded.txt', 'w')
