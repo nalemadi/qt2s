@@ -76,7 +76,6 @@ class TwitterLocationER:
 		found_locations = set()
 		text = clean_text(text.lower())
 		for location_key in self.locations.keys():
-			print location_key
 			location_len = len(location_key.split(' '))
 			ngrams_list = self.ngrams(text, location_len)
 			for ngram in ngrams_list:
