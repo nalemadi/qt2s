@@ -3,7 +3,7 @@ __author__ = 'sofiane'
 
 import logging
 
-from qt2s.resources.resources import clean_text
+from resources.resources import clean_text
 import json
 import re
 
