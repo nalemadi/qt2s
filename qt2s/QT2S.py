@@ -18,6 +18,7 @@ from resources.SlangDetection import SlangDetection
 from geocoding.LocationGeocoding import LocationGeocoding
 from traffic_classifier.ArabicTwitterClassifier import ArabicTwitterClassifier
 from location_recognition.ArabicTwitterLocationER import ArabicTwitterLocationER
+from incident_classifier.IncidentClassifier import IncidentClassifier
 
 with open("resources/qt2sconfig.yml", 'r') as f:
 	cfg = yaml.load(f)
@@ -39,6 +40,7 @@ KEYWORD_DICT_FILE = 'data/traffic_dict.csv'
 GEOCODED_LOCATION_DICT_FILE = 'data/geolocated_locations.txt'
 GEOCODED_LOCATION_AR_DICT_FILE = 'data/geolocated_locations_ar.txt'
 SLANG_DICT_FILE = 'data/slang_dict.csv'
+CATEGORIES_DICT_FILE = 'data/categories_dict.txt'
 
 TWITTER_KEY = {'consumer_key': cfg['online_keys']['twitter']['consumer_key'], 'consumer_secret': cfg['online_keys']['twitter']['consumer_secret'],
 			   'access_token': cfg['online_keys']['twitter']['access_token'], 'access_token_secret': cfg['online_keys']['twitter']['access_secret']}
@@ -181,6 +183,7 @@ def extract_entities():
 	location_geocoding = LocationGeocoding('en', google_key=GOOGLE_KEY, bing_key=BING_KEY, country_code='QA',
 										   geocoded_location_file=GEOCODED_LOCATION_DICT_FILE)
 	slang_detection = SlangDetection(slang_dictionary_file=SLANG_DICT_FILE)
+	incident_classifier = IncidentClassifier(categories_dictionary_file=CATEGORIES_DICT_FILE)
 	logger.info("Starting LocationTagger. Will read from %s and write into %s", read_channel, write_channel)
 
 	while True:
@@ -193,6 +196,7 @@ def extract_entities():
 		locations = twitter_location_er.find_locations(data['text'])
 		bad_words = slang_detection.contains_bad_words(data['text'])
 		is_from_qatar = location_geocoding.is_tweet_from_qatar(data)
+		category = incident_classifier.get_tweet_category(data['text'])
 
 		# Remove a trivial false positive: Pearl Jam
 		if len(locations) > 0 and 'pearl jam' not in data['text'].lower():
@@ -202,6 +206,7 @@ def extract_entities():
 			data['traffic_locations'] = geocoded_locations
 			data['bad_words'] = list(bad_words)
 			data['contains_bad_words'] = True if len(bad_words) > 0 else False
+			data['category'] = category
 			# Write to a new Redis channel: REDIS_NAMESPACE:REDIS_NAME_TRAFFIC_TWEETS
 			REDIS_DB.rpush(write_channel, json.dumps(data))
 			logger.info("New located tweets:%s\n Locations: %s", data['text'], list(locations))
