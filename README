@@ -1,14 +1,23 @@
- QT2S: Qatar Traffic Social Sensing
+QT2S: Qatar Traffic Social Sensing
  ----------------------------------
  This project is about the identification of Qatar traffic related tweets.
- The overall objective is to listen to Twitter live steam for all traffic-related tweets in Qatar, then
- enrich those tweets with new metadata such as: location names, geo-coordinates, etc.
+ The overall objective is to listen to Twitter live steam for all traffic-related tweets in Qatar, then  enrich those tweets with new metadata such as: location names, geo-coordinates, etc.
 
- There are three main classes so far (will add new one in the future):
+Collaborators: Sofiane Abbar, Noora Alemadi, Tahar Zanouda, Javier Borge.
+
+Prod Deployment: 
+-----------------
+
+backend server: scdev6:[REDACTED]/qt2s.
+frontend server: scdev5:[REDACTED]/qt2s. 
+
+
+There are four main classes so far (will add new one in the future):
 
   1. TwitterCollector: collects tweets from Twitter stream.
   2. TwitterClassifier: classifies a tweet into traffic/non-traffic related.
   3. TwitterLocationER: extracts named location entities from the tweet body.
+  4. TwitterIncidentClassifier: classifies tweets into different incident types. 
 
 
  Dependencies
@@ -16,6 +25,7 @@
  1. Redis (for queueing and messaging.)
  2. NLTK (for text processing: tokenization, etc.)
  3. Tweepy (Twitter streaming API for tweets collection.)
+ 4. Flask, Flask-alchemy. 
 
  How to run
  ----------
