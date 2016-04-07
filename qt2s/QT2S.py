@@ -116,37 +116,6 @@ def classify_tweets_paco():
 			# 4. Empty tweets list
 			tweets = []
 
-
-def classify_tweets():
-	"""
-	Reads from redis channel REDIS_NAMESPACE:REDIS_NAME_RAW_TWEETS, checks if the tweet is about traffic
-	then write to the redis channel: REDIS_NAMESPACE:REDIS_NAME_TRAFFIC_TWEETS
-	:return:
-	"""
-	read_channel = '%s:%s' % (REDIS_NAMESPACE, REDIS_NAME_RAW_TWEETS)
-	write_channel = '%s:%s' % (REDIS_NAMESPACE, REDIS_NAME_TRAFFIC_TWEETS)
-	non_relevant_tweets_channel = '%s:%s' % (REDIS_NAMESPACE, REDIS_NAME_NON_TRAFFIC_TWEETS)
-
-	tweet_classifier = TwitterClassifier(method='Keyword', keyword_dictionary_file=KEYWORD_DICT_FILE)
-	logger.info("Starting Classifier. Will read from %s and write into %s", read_channel, write_channel)
-
-	while True:
-		# read from Redis channel: REDIS_NAMESPACE:REDIS_NAME_RAW_TWEETS
-		data = REDIS_DB.blpop(read_channel)
-		if len(data) != 2:
-			continue
-		data = data[1]
-		logger.debug("READ from redis [type:%s]: %s", type(data), data)
-		data = json.loads(data)
-		if tweet_classifier.is_about_traffic(data):
-			data['is_about_traffic'] = True
-			# Write to a new Redis channel: REDIS_NAMESPACE:REDIS_NAME_TRAFFIC_TWEETS
-			REDIS_DB.rpush(write_channel, json.dumps(data))
-		else:
-			data['is_about_traffic'] = False
-			REDIS_DB.rpush(non_relevant_tweets_channel, json.dumps(data))
-
-
 def classify_arabic_tweets():
 	read_channel = '%s:%s' % (REDIS_NAMESPACE, REDIS_NAME_RAW_ARABIC_TWEETS)
 	write_channel = '%s:%s' % (REDIS_NAMESPACE, REDIS_NAME_TRAFFIC_ARABIC_TWEETS)
