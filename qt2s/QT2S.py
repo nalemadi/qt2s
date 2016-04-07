@@ -199,6 +199,7 @@ def extract_entities():
 		category = incident_classifier.get_tweet_category(data['text'])
 
 		# Remove a trivial false positive: Pearl Jam
+		# TODO: incorporate the black listed locations here!
 		if len(locations) > 0 and 'pearl jam' not in data['text'].lower():
 			geocoded_locations = [location_geocoding.geocode_location(location) for location in locations]
 			data['is_from_qatar'] = is_from_qatar

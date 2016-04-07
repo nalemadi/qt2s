@@ -3,49 +3,50 @@ __author__ = 'Noora'
 import logging
 import json
 import re
-
 from resources.resources import clean_text
+from collections import defaultdict
 
 logger = logging.getLogger('__name__')
 
 class IncidentClassifier:
-    def __init__(self, categories_dictionary_file=None):
-        if categories_dictionary_file is None:
-            logger.error("You should provide a path to the categories dictionary file")
-            raise Exception("Error: You should provide a path to the categories dictionary file")
-        categories = {}
-        with open(categories_dictionary_file) as f:
-            for line in f:
-                if len(line.strip()) == 0:
-                    continue
-                all_categories = json.loads(line)
-                for category_key in all_categories:
-                    for category in all_categories[category_key]:
-                        categories[clean_text(category.lower())] = category_key
+	def __init__(self, categories_dictionary_file=None):
+		if categories_dictionary_file is None:
+			logger.error("You should provide a path to the categories dictionary file")
+			raise Exception("Error: You should provide a path to the categories dictionary file")
+		word_cat_label = {}
+		with open(categories_dictionary_file) as f:
+			for line in f:
+				categories = json.loads(line)
+				for cat_label, cat_definition in categories.iteritems():
+					for word in cat_definition:
+						word_cat_label[clean_text(word.lower())] = cat_label
+		self.categories = word_cat_label
+		logger.info('New Instance\n Categories considered: %s', self.categories)
 
-		self.categories = categories
-        logger.info('New Instance\n Categories considered: %s', self.categories)
+	def get_tweet_category(self, text):
+		found_categories = defaultdict(int)
+		text = clean_text(text.lower())
+		for cat_word in self.categories:
+			category_len = len(cat_word.split(' '))
+			ngrams_list = self.ngrams(text, category_len)
+			for ngram in ngrams_list:
+				if cat_word == ngram:
+					found_categories[self.categories[cat_word]] += 1
+		if len(found_categories) != 0:
+			return sorted(found_categories, key=found_categories.get, reverse=True)[0]
+		else:
+			return 'Others'
 
-    def get_tweet_category(self, text):
-        category_name = 'Others'
-        text = clean_text(text.lower())
-        for category in self.categories.keys():
-            category_len = len(category.split(' '))
-            ngrams_list = self.ngrams(text, category_len)
-            for ngram in ngrams_list:
-                if category == ngram:
-                    category_name = self.categories[category]
-        return category_name
-
-    def getWords(self, text):
-        """
+	#TODO: move these functions to resources
+	def getWords(self, text):
+		"""
 		clean tweet text
 		:param text: body of the tweet
 		:return: list of words
 		"""
-        return re.compile('\w+').findall(text)
+		return re.compile('\w+').findall(text)
 
-    def ngrams(self, inputText, n):
+	def ngrams(self, inputText, n):
 		inputText = self.getWords(inputText)
 		output = []
 		for i in range(len(inputText)-n+1):

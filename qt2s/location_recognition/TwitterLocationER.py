@@ -69,7 +69,6 @@ class TwitterLocationER:
 		"""
 		Checks if a location exist in the text.
 		using ngrams algorithm to deal with mutiword location
-
 		:param text: body of the tweet
 		:return: set of locations found in the text.
 		"""
