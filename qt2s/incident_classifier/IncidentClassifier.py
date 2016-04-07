@@ -2,8 +2,8 @@ __author__ = 'Noora'
 
 import logging
 import json
-import re
-from resources.resources import clean_text
+from qt2s.resources.resources import clean_text
+from qt2s.resources.resources import ngrams
 from collections import defaultdict
 
 logger = logging.getLogger('__name__')
@@ -28,7 +28,7 @@ class IncidentClassifier:
 		text = clean_text(text.lower())
 		for cat_word in self.categories:
 			category_len = len(cat_word.split(' '))
-			ngrams_list = self.ngrams(text, category_len)
+			ngrams_list = ngrams(text, category_len)
 			for ngram in ngrams_list:
 				if cat_word == ngram:
 					found_categories[self.categories[cat_word]] += 1
@@ -37,24 +37,7 @@ class IncidentClassifier:
 		else:
 			return 'Others'
 
-	#TODO: move these functions to resources
-	def getWords(self, text):
-		"""
-		clean tweet text
-		:param text: body of the tweet
-		:return: list of words
-		"""
-		return re.compile('\w+').findall(text)
-
-	def ngrams(self, inputText, n):
-		inputText = self.getWords(inputText)
-		output = []
-		for i in range(len(inputText)-n+1):
-			g = ' '.join(inputText[i:i+n])
-			output.append(g)
-		return output
-
 
 #if __name__ == '__main__':
 #	incidentClassifier = IncidentClassifier(categories_dictionary_file='../data/categories_dict.txt')
-#	print incidentClassifier.get_tweet_category("traffic jam becuase of car crash")
+#	print incidentClassifier.get_tweet_category("traffic jam becuase of car crash and poor visibility")

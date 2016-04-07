@@ -4,8 +4,8 @@ __author__ = 'sofiane'
 import logging
 
 from resources.resources import clean_text
+from resources.resources import ngrams
 import json
-import re
 
 logger = logging.getLogger('__name__')
 
@@ -76,28 +76,11 @@ class TwitterLocationER:
 		text = clean_text(text.lower())
 		for location_key in self.locations.keys():
 			location_len = len(location_key.split(' '))
-			ngrams_list = self.ngrams(text, location_len)
+			ngrams_list = ngrams(text, location_len)
 			for ngram in ngrams_list:
 				if location_key == ngram:
 					found_locations.add(self.locations[location_key])
 		return found_locations
-
-	def getWords(self, text):
-		"""
-		clean tweet text
-		:param text: body of the tweet
-		:return: list of words
-		"""
-		return re.compile('\w+').findall(text)
-
-	def ngrams(self, inputText, n):
-		inputText = self.getWords(inputText)
-		output = []
-		for i in range(len(inputText)-n+1):
-			g = ' '.join(inputText[i:i+n])
-			output.append(g)
-		return output
-
 
 #if __name__ == '__main__':
 #	twitterLocationER = TwitterLocationER(location_dictionary_file='../data/geolocated_locations.txt')

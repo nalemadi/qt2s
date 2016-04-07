@@ -35,3 +35,25 @@ def clean_ar_text(text):
 	tokenizer = RegexpTokenizer(r'\w+')
 	text = [word for sent in sent_tokenize(text) for word in tokenizer.tokenize(sent) if not word.isdigit()]
 	return ' '.join(text)
+
+def getWords(text):
+	"""
+	clean text
+	:param text: body of the tweet
+	:return: list of words
+	"""
+	return re.compile('\w+').findall(text)
+
+def ngrams(inputText, n):
+	"""
+	get contiguous sequence of n words from a given sequence of tweet text
+	:param inputText:
+	:param n: size of gram
+	:return: get list contiguous sequence of n words from tweet text
+	"""
+	inputText = getWords(inputText)
+	output = []
+	for i in range(len(inputText)-n+1):
+		g = ' '.join(inputText[i:i+n])
+		output.append(g)
+	return output
