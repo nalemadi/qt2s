@@ -2,8 +2,8 @@ __author__ = 'Noora'
 
 import logging
 import json
-from qt2s.resources.resources import clean_text
-from qt2s.resources.resources import ngrams
+from resources.resources import clean_text
+from resources.resources import ngrams
 from collections import defaultdict
 
 logger = logging.getLogger('__name__')
