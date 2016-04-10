@@ -1,0 +1,26 @@
+Tests:
+======
+
+- Retrieve the list of latest traffic-related tweets
+http://10.2.0.108:9000/api/v1/tweets/recent?count=10
+
+- Retrieve tweets between two dates
+By keyword: 
+http://10.2.0.108:9000/api/v1/tweets/search?q=Accident&from=2015-04-08T00:00:00&to=2016-04-15T00:00:00
+Without Keyword: 
+http://10.2.0.108:9000/api/v1/tweets/search?from=2015-04-08T00:00:00&to=2016-04-15T00:00:00
+
+- Retrieve tweets since a specific date
+By keyword: 
+http://10.2.0.108:9000/api/v1/tweets/search?q=Accident&since=2015-04-08T00:00:00
+Without Keyword:
+http://10.2.0.108:9000/api/v1/tweets/search?&since=2015-04-08T00:00:00
+
+- Retrieve all geotagged tweets 
+http://10.2.0.108:9000/api/v1/tweets/search?geo=1
+
+- Retrieve tweets by category 
+http://10.2.0.108:9000/api/v1/tweets/search?category=Accident
+
+- Retrieve tweets by location (or keyword)
+http://10.2.0.108:9000/api/v1/tweets/search?location=Pearl
