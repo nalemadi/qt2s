@@ -7,7 +7,7 @@ import subprocess
 import os
 from datetime import datetime
 import yaml
-
+from pymongo import MongoClient, errors
 import redis
 
 from collector.TwitterCollector import TwitterCollector
@@ -20,8 +20,38 @@ from traffic_classifier.ArabicTwitterClassifier import ArabicTwitterClassifier
 from location_recognition.ArabicTwitterLocationER import ArabicTwitterLocationER
 from incident_classifier.IncidentClassifier import IncidentClassifier
 
+
+from resources.mongodb_config import *
+
+# ---------------------------------
+# Configuration File
+# ---------------------------------
 with open("resources/qt2sconfig.yml", 'r') as f:
 	cfg = yaml.load(f)
+
+# ---------------------------------
+# Database Connection
+# ---------------------------------
+
+try:
+	connection = MongoClient(MONGODB_HOST, MONGODB_PORT, connect=False)
+	print "<DEBUG>: Connected to MongoDB successfully!!!"
+
+	COLLECTION_AR_NON_TRAFFIC = connection[DBS_NAME][COLLECTION_AR_NON_TRAFFIC_NAME]
+	COLLECTION_ENG_NON_TRAFFIC = connection[DBS_NAME][COLLECTION_ENG_NON_TRAFFIC_NAME]
+
+	COLLECTION_AR_NON_LOCATED_TRAFFIC = connection[DBS_NAME][COLLECTION_AR_NON_LOCATED_TRAFFIC_NAME]
+	COLLECTION_ENG_NON_LOCATED_TRAFFIC = connection[DBS_NAME][COLLECTION_ENG_NON_LOCATED_TRAFFIC_NAME]
+
+	COLLECTION_ENG_LOCATED_TRAFFIC = connection[DBS_NAME][COLLECTION_ENG_LOCATED_TRAFFIC_NAME]
+	COLLECTION_AR_LOCATED_TRAFFIC = connection[DBS_NAME][COLLECTION_AR_LOCATED_TRAFFIC_NAME]
+
+except errors.ConnectionFailure, e:
+   print "Could not connect to MongoDB: %s" % e
+
+# ---------------------------------
+# Redis Configuration
+# ---------------------------------
 
 REDIS_NAMESPACE = cfg['redis']['hostname']
 REDIS_NAME_RAW_TWEETS = cfg['redis']['channels']['raw_tweets']
@@ -42,20 +72,31 @@ GEOCODED_LOCATION_AR_DICT_FILE = 'data/geolocated_locations_ar.txt'
 SLANG_DICT_FILE = 'data/slang_dict.csv'
 CATEGORIES_DICT_FILE = 'data/categories_dict.txt'
 
-TWITTER_KEY = {'consumer_key': cfg['online_keys']['twitter']['consumer_key'], 'consumer_secret': cfg['online_keys']['twitter']['consumer_secret'],
-			   'access_token': cfg['online_keys']['twitter']['access_token'], 'access_token_secret': cfg['online_keys']['twitter']['access_secret']}
+# ---------------------------------
+# Twitter/Google/Bing 
+# ---------------------------------
+
+TWITTER_KEY = {'consumer_key': cfg['online_keys']['twitter']['consumer_key'], 'consumer_secret': cfg['online_keys']['twitter']['consumer_secret'], 'access_token': cfg['online_keys']['twitter']['access_token'], 'access_token_secret': cfg['online_keys']['twitter']['access_secret']}
 GOOGLE_KEY = cfg['online_keys']['google']
 BING_KEY = cfg['online_keys']['bing']
 
 LOG_FILE_LOCATION = cfg['logfile']
 
 PERSISTER_FOLDER = cfg['persister_folder']
+# ---------------------------------
+# Log File
+# ---------------------------------
 
 # Initialize the logger
-logging.basicConfig(filename=LOG_FILE_LOCATION,
-			format='%(levelname)s: %(module)s: %(funcName)s: %(message)s',
-			level=logging.INFO)
+logging.basicConfig(filename=LOG_FILE_LOCATION,format='%(levelname)s: %(module)s: %(funcName)s: %(message)s', level=logging.INFO)
 logger = logging.getLogger('__name__')
+
+# ---------------------------------
+# Helpful Functions  
+# ---------------------------------		
+
+def to_datetime(tweet):
+	return datetime.strptime(tweet.get('created_at',None),'%a %b %d %H:%M:%S +0000 %Y')
 
 
 def collect_tweets():
@@ -149,8 +190,7 @@ def extract_entities():
 	non_located_traffic_tweets_channel = '%s:%s' % (REDIS_NAMESPACE, REDIS_NAME_NON_LOCATED_TRAFFIC_TWEETS)
 
 	twitter_location_er = TwitterLocationER(location_dictionary_file=GEOCODED_LOCATION_DICT_FILE)
-	location_geocoding = LocationGeocoding('en', google_key=GOOGLE_KEY, bing_key=BING_KEY, country_code='QA',
-										   geocoded_location_file=GEOCODED_LOCATION_DICT_FILE)
+	location_geocoding = LocationGeocoding('en', google_key=GOOGLE_KEY, bing_key=BING_KEY, country_code='QA', geocoded_location_file=GEOCODED_LOCATION_DICT_FILE)
 	slang_detection = SlangDetection(slang_dictionary_file=SLANG_DICT_FILE)
 	incident_classifier = IncidentClassifier(categories_dictionary_file=CATEGORIES_DICT_FILE)
 	logger.info("Starting LocationTagger. Will read from %s and write into %s", read_channel, write_channel)
@@ -238,9 +278,26 @@ def persist_tweets(redis_channel, folder_name):
 		twitter_persister.append_tweet(data.replace('\r\n', ' ').replace('\n', ' '))
 
 
+def persist_tweets_mongodb(redis_channel, collection):
+	"""
+	Persist tweets in a given redis_channel into  collection on mongodb
+	"""
+
+	redis_tweets_channel = '%s:%s' % (REDIS_NAMESPACE, redis_channel)
+	while True:
+		data = REDIS_DB.blpop(redis_tweets_channel)
+		if len(data) != 2:
+			continue
+		data = data[1]
+		json_data = json.loads(data.replace('\r\n', ' ').replace('\n', ' '))
+		# Convert datetime
+		json_data['created_at'] = to_datetime(json_data)
+		collection.insert(json_data)
+		print "<DEBUG>: Inserted data into MongoDB from  ", redis_channel
+
+
+
 if __name__ == '__main__':
-	logger.info('\n\n=================\n\nNEW INSTANCE\n-------------\n-->Started on: %s\n', datetime.now())
-	
 	collector = multiprocessing.Process(name='Collector', target=collect_tweets)
 	collector.start()
 
@@ -256,18 +313,28 @@ if __name__ == '__main__':
 	location_tagger_ar = multiprocessing.Process(name='ARLocationER', target=extract_ar_entities)
 	location_tagger_ar.start()
 
-	persist_non_traffic_tweets = multiprocessing.Process(name='NonTrafficTweetsPersister', target=persist_tweets,
-														 args=(REDIS_NAME_NON_TRAFFIC_TWEETS, 'non_traffic_tweets'))
+
+
+	persist_non_traffic_tweets = multiprocessing.Process(name='NonTrafficTweetsPersister', target=persist_tweets_mongodb, args=(REDIS_NAME_NON_TRAFFIC_TWEETS, COLLECTION_ENG_NON_TRAFFIC ))
 	persist_non_traffic_tweets.start()
-
-	persist_non_traffic_arabic_tweets = multiprocessing.Process(name='NonTrafficArabicTweetsPersister', target=persist_tweets, args=(REDIS_NAME_NON_TRAFFIC_ARABIC_TWEETS, 'non_traffic_arabic_tweets'))
+	persist_non_traffic_arabic_tweets = multiprocessing.Process(name='NonTrafficArabicTweetsPersister', target=persist_tweets_mongodb, args=(REDIS_NAME_NON_TRAFFIC_ARABIC_TWEETS, COLLECTION_AR_NON_TRAFFIC))
 	persist_non_traffic_arabic_tweets.start()
-
-	persist_non_located_traffic_tweets = multiprocessing.Process(name='NonLocatedTrafficTweetsPersister',
-														 target=persist_tweets,
-														 args=(REDIS_NAME_NON_LOCATED_TRAFFIC_TWEETS,
-															   'non_located_traffic_tweets'))
+	persist_non_located_traffic_tweets = multiprocessing.Process(name='NonLocatedTrafficTweetsPersister', target=persist_tweets_mongodb, args=(REDIS_NAME_NON_LOCATED_TRAFFIC_TWEETS, COLLECTION_ENG_NON_LOCATED_TRAFFIC))
 	persist_non_located_traffic_tweets.start()
-
-	persist_non_located_arabic_traffic_tweets = multiprocessing.Process(name='NonLocatedArabicTrafficTweetsPersister', target=persist_tweets, args=(REDIS_NAME_NON_LOCATED_ARABIC_TRAFFIC_TWEETS, 'non_located_arabic_traffic_tweets'))
+	persist_non_located_arabic_traffic_tweets = multiprocessing.Process(name='NonLocatedArabicTrafficTweetsPersister', target=persist_tweets_mongodb, args=(REDIS_NAME_NON_LOCATED_ARABIC_TRAFFIC_TWEETS, COLLECTION_AR_NON_LOCATED_TRAFFIC))
 	persist_non_located_arabic_traffic_tweets.start()
+
+	# These two are not releavant
+	# persist_arabic_traffic_tweets_mongodb = multiprocessing.Process(name='persist_arabic_traffic_tweets_mongodb', target=persist_tweets_mongodb, args=(REDIS_NAME_TRAFFIC_ARABIC_TWEETS , COLLECTION_AR_TRAFFIC ))
+	# persist_arabic_traffic_tweets_mongodb.start()
+	# persist_eng_traffic_tweets_mongodb = multiprocessing.Process(name='persist_eng_traffic_tweets_mongodb', target=persist_tweets_mongodb, args=( REDIS_NAME_TRAFFIC_TWEETS ,COLLECTION_ENG_TRAFFIC ))
+	# persist_eng_traffic_tweets_mongodb.start()
+
+	# add located_traffic_tweets
+	persist_eng_located_traffic_tweets_mongodb = multiprocessing.Process(name='persist_eng_located_traffic_tweets_mongodb', target=persist_tweets_mongodb, args=( REDIS_NAME_LOCATED_TRAFFIC_TWEETS ,COLLECTION_ENG_LOCATED_TRAFFIC ))
+	persist_eng_located_traffic_tweets_mongodb.start()
+
+	persisteng_located_traffic_tweets_mongodb = multiprocessing.Process(name='persist_eng_located_traffic_tweets_mongodb', target=persist_tweets_mongodb, args=( REDIS_NAME_LOCATED_ARABIC_TRAFFIC_TWEETS ,COLLECTION_AR_LOCATED_TRAFFIC ))
+	persisteng_located_traffic_tweets_mongodb.start()
+
+
