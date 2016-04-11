@@ -64,6 +64,7 @@ REDIS_NAME_NON_TRAFFIC_ARABIC_TWEETS = cfg['redis']['channels']['non_traffic_ara
 REDIS_NAME_TRAFFIC_ARABIC_TWEETS = cfg['redis']['channels']['traffic_arabic_tweets']
 REDIS_NAME_NON_LOCATED_ARABIC_TRAFFIC_TWEETS = cfg['redis']['channels']['non_located_arabic_traffic_tweets']
 REDIS_NAME_LOCATED_ARABIC_TRAFFIC_TWEETS = cfg['redis']['channels']['located_arabic_traffic_tweets']
+REDIS_NAME_WORLDWIDE_GEOLOCATED_TWEETS = cfg['redis']['channels']['worldwide_geolocated_tweets']
 REDIS_DB = redis.Redis(host=cfg['redis']['host'], port=cfg['redis']['port'])
 
 KEYWORD_DICT_FILE = 'data/traffic_dict.csv'
@@ -188,6 +189,7 @@ def extract_entities():
 	read_channel = '%s:%s' % (REDIS_NAMESPACE, REDIS_NAME_TRAFFIC_TWEETS)
 	write_channel = '%s:%s' % (REDIS_NAMESPACE, REDIS_NAME_LOCATED_TRAFFIC_TWEETS)
 	non_located_traffic_tweets_channel = '%s:%s' % (REDIS_NAMESPACE, REDIS_NAME_NON_LOCATED_TRAFFIC_TWEETS)
+	worldwide_tweets_channel = '%s:%s' % (REDIS_NAMESPACE, REDIS_NAME_WORLDWIDE_GEOLOCATED_TWEETS)
 
 	twitter_location_er = TwitterLocationER(location_dictionary_file=GEOCODED_LOCATION_DICT_FILE)
 	location_geocoding = LocationGeocoding('en', google_key=GOOGLE_KEY, bing_key=BING_KEY, country_code='QA', geocoded_location_file=GEOCODED_LOCATION_DICT_FILE)
@@ -202,29 +204,37 @@ def extract_entities():
 			continue
 		data = data[1]
 		data = json.loads(data)
-		locations = twitter_location_er.find_locations(data['text'])
-		bad_words = slang_detection.contains_bad_words(data['text'])
-		is_from_qatar = location_geocoding.is_tweet_from_qatar(data)
-		category = incident_classifier.get_tweet_category(data['text'])
 
-		# Remove a trivial false positive: Pearl Jam
-		# TODO: incorporate the black listed locations here!
-		if len(locations) > 0 and 'pearl jam' not in data['text'].lower():
-			geocoded_locations = [location_geocoding.geocode_location(location) for location in locations]
-			data['is_from_qatar'] = is_from_qatar
-			data['contains_traffic_locations'] = True
-			data['traffic_locations'] = geocoded_locations
-			data['bad_words'] = list(bad_words)
-			data['contains_bad_words'] = True if len(bad_words) > 0 else False
+		is_worldwide_tweet = location_geocoding.is_tweet_outside_qatar(data)
+		if is_worldwide_tweet:
+			category = incident_classifier.get_tweet_category(data['text'])
 			data['category'] = category
-			# Write to a new Redis channel: REDIS_NAMESPACE:REDIS_NAME_TRAFFIC_TWEETS
-			REDIS_DB.rpush(write_channel, json.dumps(data))
-			logger.info("New located tweets:%s\n Locations: %s", data['text'], list(locations))
+			REDIS_DB.rpush(worldwide_tweets_channel, json.dumps(data))
+			logger.info("Tweet outside Qatar")
 		else:
-			# add the tweet to the end, and make sure the list has at most 1M tweets
-			data['contains_traffic_locations'] = False
-			REDIS_DB.rpush(non_located_traffic_tweets_channel, json.dumps(data))
-			REDIS_DB.ltrim(non_located_traffic_tweets_channel, -1000000, -1)
+			locations = twitter_location_er.find_locations(data['text'])
+			bad_words = slang_detection.contains_bad_words(data['text'])
+			is_from_qatar = location_geocoding.is_tweet_from_qatar(data)
+			category = incident_classifier.get_tweet_category(data['text'])
+
+			# Remove a trivial false positive: Pearl Jam
+			# TODO: incorporate the black listed locations here!
+			if len(locations) > 0 and 'pearl jam' not in data['text'].lower():
+				geocoded_locations = [location_geocoding.geocode_location(location) for location in locations]
+				data['is_from_qatar'] = is_from_qatar
+				data['contains_traffic_locations'] = True
+				data['traffic_locations'] = geocoded_locations
+				data['bad_words'] = list(bad_words)
+				data['contains_bad_words'] = True if len(bad_words) > 0 else False
+				data['category'] = category
+				# Write to a new Redis channel: REDIS_NAMESPACE:REDIS_NAME_TRAFFIC_TWEETS
+				REDIS_DB.rpush(write_channel, json.dumps(data))
+				logger.info("New located tweets:%s\n Locations: %s", data['text'], list(locations))
+			else:
+				# add the tweet to the end, and make sure the list has at most 1M tweets
+				data['contains_traffic_locations'] = False
+				REDIS_DB.rpush(non_located_traffic_tweets_channel, json.dumps(data))
+				REDIS_DB.ltrim(non_located_traffic_tweets_channel, -1000000, -1)
 
 def extract_ar_entities():
 	read_channel = '%s:%s' % (REDIS_NAMESPACE, REDIS_NAME_TRAFFIC_ARABIC_TWEETS)

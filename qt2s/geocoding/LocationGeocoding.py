@@ -354,6 +354,31 @@ class LocationGeocoding:
 					return True
 			return False
 
+	def is_tweet_outside_qatar(self, tweet):
+		"""
+		Checks whether a tweet is outside Qatar. A tweet is considered not from Qatar if
+		and only if: it has geo-coordinates outside Qatar.
+		:param tweet: Tweet as a Json object
+		:return: Boolean
+		"""
+		if 'coordinates' not in tweet.keys() and 'user' not in tweet.keys():
+			return False
+
+		if tweet['coordinates'] is not None:
+			lat = tweet['coordinates']['coordinates'][0]
+			lng = tweet['coordinates']['coordinates'][1]
+			# Qatar boundingBox 50.7048,24.4708,51.7371,26.2057
+			lat_max = 26.2057
+			lat_min = 24.4708
+			lng_max = 51.7371
+			lng_min = 50.7048
+			if lat_min <= lat <= lat_max and lng_min <= lng <= lng_max:
+				return False
+			else:
+				return True
+		else:
+			return False
+
 
 	@staticmethod
 	def get_qatar_locations():
