@@ -1,12 +1,12 @@
 
-    // Read all table IDs:
-    var map_table = '[REDACTED]';
-    var timeline_table = '[REDACTED]';
-    var hashtags_table = '[REDACTED]';
-    var tweets_table = '[REDACTED]';
-    var my_key = '[REDACTED]';
+   // var map_table = '[REDACTED]';
+    //var timeline_table = '[REDACTED]';
+    //var hashtags_table = '[REDACTED]';
+    //var tweets_table = '[REDACTED]';
+    // my google key
+    var my_key = 'AIzaSyDoRiEVuYxD1SLZ74hhFf76HtN5-4cVQtM';
 
-   	function drawVisualization() {
+   /*	function drawVisualization() {
 	google.visualization.drawChart({
         "containerId": "trends_content",
         "dataSourceUrl":"http://www.google.com/fusiontables/gvizdata?tq=",
@@ -16,9 +16,9 @@
         "chartType": "LineChart",
         "options": {}
      });
-    }
+    }*/
 	google.load("visualization", "1.1", {packages:["corechart"]});
-    google.setOnLoadCallback(drawVisualization);
+    //google.setOnLoadCallback(drawVisualization);
 </script>
 
 <script type="text/javascript">
@@ -39,7 +39,7 @@
       mapTypeId: google.maps.MapTypeId.ROADMAP
     });
 
-    layer = new google.maps.FusionTablesLayer({
+    /*layer = new google.maps.FusionTablesLayer({
       map: map,
       heatmap: { enabled: false },
       query: {
@@ -51,7 +51,7 @@
         styleId: 2,
         templateId: 2
       }
-    });
+    });*/
 
     if (isMobile) {
       var legend = document.getElementById('googft-legend');

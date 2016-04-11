@@ -3,74 +3,61 @@
         <meta name="viewport"/>
         <meta http-equiv="content-type" content="text/html; charset=utf-8" />
         <script type="text/javascript" src="https://www.google.com/jsapi"></script>
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
-        <script type="text/javascript" src="http://sc1.qcri.org/cop18/cop_scripts/jqcloud/jqcloud-1.0.2.js"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
+        <script type="text/javascript" src="http://scdev5.qcri.org/sabbar/libs/jqcloud/jqcloud-1.0.2.js"></script>
+        <!--<script src="http://widgets.qcri.org/aje/jsonp/jquery.jsonp-2.4.0.min.js" type="text/javascript"></script>-->
         <link rel="stylesheet" type="text/css" href="css/qt2sMap.css" />
-        <link rel="stylesheet" type="text/css" href="http://sc1.qcri.org/cop18/cop_scripts/jqcloud/jqcloud.css" />
+        <link rel="stylesheet" type="text/css" href="http://scdev5.qcri.org/sabbar/libs/jqcloud/jqcloud.css" />
 
 
-    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
-    <script type="text/javascript">
-    // Read all table IDs:
-    var map_table = '[REDACTED]';
-    var timeline_table = '[REDACTED]';
-    var hashtags_table = '[REDACTED]';
-    var tweets_table = '[REDACTED]';
-    var my_key = '[REDACTED]';
-
-   function drawVisualization() {
-	google.visualization.drawChart({
-        "containerId": "trends_content",
-        "dataSourceUrl":"http://www.google.com/fusiontables/gvizdata?tq=",
-        "query":"SELECT 'date', 'freq' FROM " +
-                timeline_table,
-        "refreshInterval": 5,
-        "chartType": "LineChart",
-        "options": {}
-     });
-    }
- google.load("visualization", "1.1", {packages:["corechart"]});
-
-    google.setOnLoadCallback(drawVisualization);
-  </script>
-
+ <script type="text/javascript" src="https://www.google.com/jsapi"></script>
 <script type="text/javascript" src="https://maps.google.com/maps/api/js?sensor=false&amp;v=3"></script>
+<script type="text/javascript" src="js/oms.min.js"></script>
 
 <script type="text/javascript">
+    var lastDate;
+    var gm = google.maps;
+    var oms;
+    var map;
+    var markers = [];
+    var infowindow = new gm.InfoWindow();
+    var tweet_categorizes = [{"name":"Accident", "color": "color red", "color_code": "C00"}, {"name":"Road_Construction", "color": "color yellow", "color_code": "FF3"}, {"name":"Weather_Condition", "color": "color green", "color_code": "337F00"}, {"name":"Road_Diversion", "color": "color blue", "color_code": "06C"}, {"name":"Procession", "color": "color purple", "color_code": "63C"}, {"name":"Others", "color": "color gray", "color_code": "989898"}];
+    //
     function initialize() {
-        google.maps.visualRefresh = true;
+        //
+        gm.visualRefresh = true;
         var isMobile = (navigator.userAgent.toLowerCase().indexOf('android') > -1) ||
             (navigator.userAgent.match(/(iPod|iPhone|iPad|BlackBerry|Windows Phone|iemobile)/));
         if (isMobile) {
             var viewport = document.querySelector("meta[name=viewport]");
             viewport.setAttribute('content', 'initial-scale=1.0, user-scalable=no');
         }
-        var mapDiv = document.getElementById('maps_content');
-        mapDiv.style.width = isMobile ? '100%' : '1000px';
-        mapDiv.style.height = isMobile ? '100%' : '490px';
-        var map = new google.maps.Map(mapDiv, {
-            center: new google.maps.LatLng(25.3417949, 51.4600856),
+        //var mapDiv = document.getElementById('maps_content');
+        //mapDiv.style.width = isMobile ? '100%' : '1000px';
+        //mapDiv.style.height = isMobile ? '100%' : '490px';
+        map = new gm.Map(document.getElementById('maps_content'), {
+            center: new gm.LatLng(25.3417949, 51.4600856),
             zoom: 11,
-            mapTypeId: google.maps.MapTypeId.ROADMAP
+            mapTypeId: gm.MapTypeId.ROADMAP
         });
+
+        oms = new OverlappingMarkerSpiderfier(map, {markersWontMove: true, markersWontHide: true});
+
+        // add legend to map
+        map.controls[gm.ControlPosition.LEFT_BOTTOM].push(document.getElementById('legend'));
+        var legend = document.getElementById('legend');
+        console.log(tweet_categorizes.length);
+        for (var i=0; i<tweet_categorizes.length; i++) {
+            var name = tweet_categorizes[i].name;
+            var color = tweet_categorizes[i].color;
+            var div = document.createElement('div');
+            div.innerHTML = '<div class="'+color+'"></div>'+name;
+            legend.appendChild(div);
+        }
 
         // Adding Traffic Layer!
-        var trafficLayer = new google.maps.TrafficLayer();
+        var trafficLayer = new gm.TrafficLayer();
         trafficLayer.setMap(map);
-
-        layer = new google.maps.FusionTablesLayer({
-            map: map,
-            heatmap: { enabled: false },
-            query: {
-                select: "col3",
-                from: map_table,
-                where: ""
-            },
-            options: {
-                styleId: 2,
-                templateId: 2
-            }
-        });
 
         if (isMobile) {
             var legend = document.getElementById('googft-legend');
@@ -88,72 +75,247 @@
                 legendOpenButton.style.display = 'block';
             }
         }
+
+        // read real time data from QT2S API
+        var api_key = 'hTy5Wt1A7VQ9Ctce8vgRLw6bj43axHU5d5vcvzIFaq0';  // Noora's production key
+        var data_count = 100;
+        $.ajax({
+            type: "GET",
+            url: "http://localhost/qt2s/api/v1/tweets/recent?count="+data_count+"&key="+api_key,
+            success: function(alldata) {
+                processJSONData(alldata);
+            },
+            error: function(xhr) {
+                console.log('URL Error');
+            }
+        });
+
+        setInterval(function() {
+            console.log('lastDate: '+this.lastDate);
+            var currentMonth = ("0"+ (this.lastDate.getMonth()+1)).slice(-2);
+            var currentDay = ("0"+ this.lastDate.getDate()).slice(-2);
+            var currentHour = ("0"+this.lastDate.getHours()).slice(-2);
+            var currentMin = ("0"+this.lastDate.getMinutes()).slice(-2);
+            var since_date = this.lastDate.getFullYear()+"-"+currentMonth+"-"+currentDay+" "+currentHour+":"+currentMin;
+            //console.log(since_date);
+            $.ajax({
+                type: "GET",
+                url: "http://localhost/qt2s/api/v1/tweets/search?q=a&since="+since_date+"&key="+api_key,
+                success: function(alldata) {
+                    processJSONData(alldata);
+                },
+                error: function(xhr) {
+                    console.log('URL Error');
+                }
+            });
+        }, 1000 * 60 * 3); // call API every 3 minutes
     }
 
-    google.maps.event.addDomListener(window, 'load', initialize);
+    function processJSONData(alldata) {
+        //console.log('process json data');
+        //console.log('alldata length: '+alldata.res.length);
+        var newItems = false;
+        //console.log(newItems);
+        for (var i=0; i<alldata.res.length; i++) {
+            if(alldata.res[i] != '') {
+                var obj = alldata.res[i];
+                if (this.lastDate != null) {
+                    var currentDate = new Date(obj.tweet_timestamp);
+                    if (currentDate > this.lastDate) {
+                        this.lastDate = currentDate;
+                        console.log('update lastDate to: '+this.lastDate);
+                        newItems = true;
+                        checkObjCoordinates(obj);
+                    }
+                }
+                else { // first time
+                    newItems = true;
+                    checkObjCoordinates(obj);
+                }
+            }
+        }
+        //
+        if (this.lastDate == null) {
+            var lastObjTest = alldata.res[alldata.res.length-1];
+            var lastObj;
+            if(lastObjTest == '') {
+                lastObj = alldata.res[alldata.res.length-2];
+            } else {
+                lastObj = alldata.res[alldata.res.length-1];
+            }
+            this.lastDate = new Date(lastObj.tweet_timestamp);
+            console.log('lastDate: '+this.lastDate);
+        }
+        console.log('markers length '+markers.length);
+        //console.log('done json process data');
+        //
+        if(newItems === true) {
+            var shadow = new gm.MarkerImage(
+                'https://www.google.com/intl/en_ALL/mapfiles/shadow50.png',
+                new gm.Size(37, 34),  // size   - for sprite clipping
+                new gm.Point(0, 0),   // origin - ditto
+                new gm.Point(10, 34)  // anchor - where to meet map location
+            );
+            oms.addListener('click', function(marker) {
+                infowindow.setContent(marker.desc);
+                infowindow.open(map, marker);
+            });
+            oms.addListener('spiderfy', function(markers) {
+                for(var i = 0; i < markers.length; i ++) {
+                    markers[i].setShadow(null);
+                }
+            });
+            oms.addListener('unspiderfy', function(markers) {
+                for(var i = 0; i < markers.length; i ++) {
+                    markers[i].setShadow(shadow);
+                }
+            });
+        }
+    }
+    //
+    gm.event.addDomListener(window, 'load', initialize);
+    //
+    function checkObjCoordinates(obj) {
+        var lat = null;
+        var lng = null;
+        var pictures = obj.images;
+        var marker_color = null;
+        var marker_size = null;
+        var tweet_coordinates = obj.tweet_coordinates;
+        //
+        var category_name = null;
+        // get tweet category from returned data
+        category_name = obj.category;
+        if(category_name == null)
+            category_name = 'Others';
+        var obj_category = getCategory(category_name);
+        //
+        var is_geolocated = false;
+        //
+        broken = obj_category.color.split(' ');
+        marker_color = broken[1];
+        //
+        if (tweet_coordinates != null) { //geolocated tweet
+            lat = tweet_coordinates.lat;
+            lng = tweet_coordinates.lng;
+            is_geolocated = true;
+        }
+        else {
+            for (var j=0; j<obj.traffic_locations.length; j++) {
+                var loc = obj.traffic_locations[j];
+                var coor = loc.coordinates;
+                if (coor != null) {
+                    if (coor.google != null) {
+                        lat = coor.google.lat;
+                        lng = coor.google.lng;
+                    }
+                    else {
+                        if (coor.nominatim != null) {
+                            lat = coor.nominatim.lat;
+                            lng = coor.nominatim.lng;
+                        }
+                        else {
+                            if (coor.bing != null) {
+                                lat = coor.bing.lat;
+                                lng = coor.bing.lng;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if(lat != null && lng != null) {
+            var windowContent;
+            if(pictures != null) {
+                marker_size = 'large';
+                windowContent = "<div> <span style='font-weight:bold;'>" + obj.user_screen_name+ "</span></br>" + obj.tweet_text + "</br><i>" + obj.tweet_timestamp +"</i></br><img src="+pictures[0]+" style=\"width:304px;height:228px;\"> </div>";
+            }
+            else {
+                marker_size = 'small';
+                windowContent = "<div> <span style='font-weight:bold;'>" + obj.user_screen_name+ "</span></br>" + obj.tweet_text + "</br><i>" + obj.tweet_timestamp + "</i></div>";
+            }
+            //
+            createMarker(lat, lng, windowContent, marker_size, marker_color, obj_category.color_code, is_geolocated);
+        }
+        else {
+            console.log(obj.tweet_id+': lat: '+lat+', lng: '+lng);
+        }
+    }
+
+    function getCategory(categoryName) {
+        for(var i=0; i<tweet_categorizes.length; i++) {
+            if(tweet_categorizes[i].name == categoryName) {
+                return tweet_categorizes[i];
+            }
+        }
+    }
+    //
+    // This function create marker with color, size and infoWindow
+    function createMarker(lat, lng, htmlInfoWindow, marker_size, marker_color, color_code, is_geolocated) {
+        var marker = null;
+        var latLng = new gm.LatLng(lat, lng);
+        var large_icon_path = null;
+        var small_icon_path = null;
+        var icon_scale = 0;
+        var pin_image = null;
+        //
+        if(is_geolocated) {
+            large_icon_path = "http://chart.apis.google.com/chart?chst=d_map_xpin_icon&chld=pin_star|location|";
+            pin_image = new gm.MarkerImage(large_icon_path + color_code+"|FF0000");
+            small_icon_path = gm.SymbolPath.BACKWARD_CLOSED_ARROW;
+            icon_scale = 3;
+        }
+        else {
+            large_icon_path = "http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|";
+            pin_image = new gm.MarkerImage(large_icon_path + color_code,
+                new gm.Size(21, 34),
+                new gm.Point(0,0),
+                new gm.Point(10, 34));
+            small_icon_path = gm.SymbolPath.CIRCLE;
+            icon_scale = 5;
+        }
+
+        if(marker_size == 'large') {
+            marker = new gm.Marker({
+                position: latLng,
+                icon: pin_image,
+                map: map,
+                animation: gm.Animation.DROP
+            });
+        }
+        else if(marker_size == 'small') {
+            marker = new gm.Marker({
+                position: latLng,
+                icon: {
+                     path: small_icon_path,
+                     strokeColor: marker_color,
+                     scale: icon_scale
+                },
+                map: map,
+                animation: gm.Animation.DROP
+            });
+        }
+        marker.desc = htmlInfoWindow;
+        oms.addMarker(marker);
+        markers.push(marker);
+
+        //Pans map to the new location of the marker
+        map.panTo(latLng);
+    }
+
 </script>
-
-<script type="text/javascript">
-$.ajax({
-        url:"https://www.googleapis.com/fusiontables/v2/query?sql=SELECT user, freq from "+ users_table +" order by freq DESC limit 50&key="+my_key,
-        success: function(data){
-		var r = new Array(), j = -1;
-                $.each( data['rows'], function( key, val ){
-     			r[++j] ='<tr><td><a href="http://twitter.com/'+val[0]+'" target=_blank>@'+ val[0]+ '</a></td>'+ '<td>'+ val[1]+' tweets</td></tr>';
-        	});
-		$('#users').html(r.join(''));
-	}
-});
-</script>
-
-<script type="text/javascript">
-var word_list = [];
-$.ajax({
-	 url: "https://www.googleapis.com/fusiontables/v2/query?sql=SELECT hashtag, freq from "+ hashtags_table +" order by freq DESC limit 70&key="+my_key,
-        success: function(data){
-		var r = new Array(), j = -1;
-                $.each( data['rows'], function( key, val ){
-			// alert(val);
-     			word_list.push(new word(val[0],val[1]));
-        	});
-		$("#pophashtags_content").jQCloud(word_list, {shape:'elliptical'});
-		}
-});
-function word(content, weight){
-	this.text=content;
-	this.weight=weight;
-}
-</script>
-
-
-<script type="text/javascript">
-$.ajax({
-	 url: "https://www.googleapis.com/fusiontables/v2/query?sql=SELECT url, name, screenname, text,freq from "+ tweets_table +" order by freq DESC limit 50&key="+my_key,
-        success: function(data){
-		var r = new Array(), j = -1;
-                $.each( data['rows'], function( key, val ){
-			r[++j] ='<tr><td><img src='+ val[0]+ '/></td><td><a href="http://www.twitter.com/'+val[2]+'" target=_blank>'+val[1]+'</a>:'+ val[3]+'</br>'+val[4]+' x Times</td></tr>';
-        	});
-		$('#popretweets').html(r.join(''));
-
-	}
-});
-</script>
-
-
-
-
     </head>
 
     <body>
         <div id="body">
             <div id="header" >
-                <div style="height:240px;width:100%;"></div><h1>QT2S: Qatar Traffic Social Sensing</h1>
+                <div style="height:240px;width:100%;"></div><h1>STM: Social Traffic Monitoring</h1>
             </div>
 
             <div id="container">
                 <div id="inputs">
-                    <div class="boxTitle"> Inputs</div>
+                    <div class="boxTitle">  Inputs</div>
                     <div id="inputs_content">
                         Data Sources:
                         <input type="checkbox" name="data_source" value="iTraffic"> waveTraff
@@ -167,29 +329,11 @@ $.ajax({
                 <div id="maps">
                     <div id="maps_title"><b><u>GEO-MAPPED TWEETS</u></b></div>
                     <div id="maps_content"></div>
+                    <div id="legend"></div>
                 </div>
-
-                <div id="tweets">
-                    <div id="retweets_title"><b>TWEETS</b></div>
-                    <div id="retweets_content">
-                        <table id="popretweets" style ="width: 100%"></table>
-                    </div>
-                </div>
-
-                <div id="trends">
-                    <div id="trends_title"><b><u>TWEETS FREQUENCY</u></b></div>
-                    <div id="trends_content"></div>
-                </div>
-
-                <div id="pophashtags">
-                    <div id="pophashtags_title"><b><u>POPULAR HASHTAGS</u></b></div>
-                    <div id="pophashtags_content"></div>
-                </div>
-
-
             </div>
 
-            <div id="footer"><h3><u><i>Sofiane/Noora @QCRI - 2015</i></u></h3></div>
+            <div id="footer"><h3><u><i>Sofiane/Noora @QCRI - 2016</i></u></h3></div>
 
         </div>
     </body>

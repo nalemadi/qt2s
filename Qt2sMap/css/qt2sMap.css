@@ -19,6 +19,7 @@
 	}
 
 #inputs {
+    font-family:Georgia;
 	margin-top:40px;
 	margin-bottom:40px;
 	height:80px;
@@ -117,3 +118,41 @@
 	text-align:center;
 	font-size:12px;
 	}
+
+#legend {
+    background: white;
+    padding: 10px;
+    margin: 5px;
+    font-size: 14px;
+    font-family: Arial, sans-serif;
+  }
+
+.color {
+    border: 1px solid;
+    height: 12px;
+    width: 12px;
+    margin-right: 3px;
+    float: left;
+      }
+
+.red {
+	background: #C00;
+}
+.yellow {
+    background: #FF3;
+  }
+
+.green {
+    background: #337F00;
+  }
+
+.blue {
+    background: #06C;
+  }
+
+.purple {
+    background: #63C;
+  }
+.gray {
+	background: #989898;
+}
