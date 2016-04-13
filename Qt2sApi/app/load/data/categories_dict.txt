@@ -1,1 +1,0 @@
-{"Accident": ["accident", "collision", "crash"], "Weather_Condition": ["rain", "heavy rain", "Poor Visibility", "fog"], "Road_Construction": ["traffic lights not working", "construction", "road construction"], "Road_Diversion": ["road diversion", "diversion", "traffic diversions", "Street will be diverted", "temporary diversion"], "Procession": ["procession"], "Others": ["fire"]}

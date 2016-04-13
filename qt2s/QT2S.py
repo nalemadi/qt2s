@@ -37,17 +37,22 @@ try:
 	connection = MongoClient(MONGODB_HOST, MONGODB_PORT, connect=False)
 	print "<DEBUG>: Connected to MongoDB successfully!!!"
 
+
 	COLLECTION_AR_NON_TRAFFIC = connection[DBS_NAME][COLLECTION_AR_NON_TRAFFIC_NAME]
 	COLLECTION_ENG_NON_TRAFFIC = connection[DBS_NAME][COLLECTION_ENG_NON_TRAFFIC_NAME]
 
 	COLLECTION_AR_NON_LOCATED_TRAFFIC = connection[DBS_NAME][COLLECTION_AR_NON_LOCATED_TRAFFIC_NAME]
 	COLLECTION_ENG_NON_LOCATED_TRAFFIC = connection[DBS_NAME][COLLECTION_ENG_NON_LOCATED_TRAFFIC_NAME]
 
-	COLLECTION_ENG_LOCATED_TRAFFIC = connection[DBS_NAME][COLLECTION_ENG_LOCATED_TRAFFIC_NAME]
-	COLLECTION_AR_LOCATED_TRAFFIC = connection[DBS_NAME][COLLECTION_AR_LOCATED_TRAFFIC_NAME]
+	COLLECTION_ENG_LOCATED_TRAFFIC_QA = connection[DBS_NAME][COLLECTION_ENG_LOCATED_TRAFFIC_QA_NAME]
+	COLLECTION_AR_LOCATED_TRAFFIC_QA = connection[DBS_NAME][COLLECTION_AR_LOCATED_TRAFFIC_QA_NAME]
+
+	COLLECTION_ENG_LOCATED_TRAFFIC_WORLDWIDE = connection[DBS_NAME][COLLECTION_ENG_LOCATED_TRAFFIC_WORLDWIDE_NAME]
+	#COLLECTION_AR_LOCATED_TRAFFIC_WORLDWIDE = connection[DBS_NAME][COLLECTION_AR_LOCATED_TRAFFIC_WORLDWIDE_NAME]
 
 except errors.ConnectionFailure, e:
    print "Could not connect to MongoDB: %s" % e
+
 
 # ---------------------------------
 # Redis Configuration
@@ -308,6 +313,7 @@ def persist_tweets_mongodb(redis_channel, collection):
 
 
 if __name__ == '__main__':
+
 	collector = multiprocessing.Process(name='Collector', target=collect_tweets)
 	collector.start()
 
@@ -323,28 +329,28 @@ if __name__ == '__main__':
 	location_tagger_ar = multiprocessing.Process(name='ARLocationER', target=extract_ar_entities)
 	location_tagger_ar.start()
 
-
-
-	persist_non_traffic_tweets = multiprocessing.Process(name='NonTrafficTweetsPersister', target=persist_tweets_mongodb, args=(REDIS_NAME_NON_TRAFFIC_TWEETS, COLLECTION_ENG_NON_TRAFFIC ))
+	# Store data, we might need them in the future
+	persist_non_traffic_tweets = multiprocessing.Process(name='PERSIST_COLLECTION_ENG_NON_TRAFFIC', target=persist_tweets_mongodb, args=(REDIS_NAME_NON_TRAFFIC_TWEETS, COLLECTION_ENG_NON_TRAFFIC ))
 	persist_non_traffic_tweets.start()
-	persist_non_traffic_arabic_tweets = multiprocessing.Process(name='NonTrafficArabicTweetsPersister', target=persist_tweets_mongodb, args=(REDIS_NAME_NON_TRAFFIC_ARABIC_TWEETS, COLLECTION_AR_NON_TRAFFIC))
+
+	persist_non_traffic_arabic_tweets = multiprocessing.Process(name='PERSIST_COLLECTION_AR_NON_TRAFFIC', target=persist_tweets_mongodb, args=(REDIS_NAME_NON_TRAFFIC_ARABIC_TWEETS, COLLECTION_AR_NON_TRAFFIC))
 	persist_non_traffic_arabic_tweets.start()
-	persist_non_located_traffic_tweets = multiprocessing.Process(name='NonLocatedTrafficTweetsPersister', target=persist_tweets_mongodb, args=(REDIS_NAME_NON_LOCATED_TRAFFIC_TWEETS, COLLECTION_ENG_NON_LOCATED_TRAFFIC))
+
+	persist_non_located_traffic_tweets = multiprocessing.Process(name='PERSIST_COLLECTION_ENG_NON_LOCATED_TRAFFIC', target=persist_tweets_mongodb, args=(REDIS_NAME_NON_LOCATED_TRAFFIC_TWEETS, COLLECTION_ENG_NON_LOCATED_TRAFFIC))
 	persist_non_located_traffic_tweets.start()
-	persist_non_located_arabic_traffic_tweets = multiprocessing.Process(name='NonLocatedArabicTrafficTweetsPersister', target=persist_tweets_mongodb, args=(REDIS_NAME_NON_LOCATED_ARABIC_TRAFFIC_TWEETS, COLLECTION_AR_NON_LOCATED_TRAFFIC))
+
+	persist_non_located_arabic_traffic_tweets = multiprocessing.Process(name='PERSIST_COLLECTION_AR_NON_LOCATED_TRAFFIC', target=persist_tweets_mongodb, args=(REDIS_NAME_NON_LOCATED_ARABIC_TRAFFIC_TWEETS, COLLECTION_AR_NON_LOCATED_TRAFFIC))
 	persist_non_located_arabic_traffic_tweets.start()
 
-	# These two are not releavant
-	# persist_arabic_traffic_tweets_mongodb = multiprocessing.Process(name='persist_arabic_traffic_tweets_mongodb', target=persist_tweets_mongodb, args=(REDIS_NAME_TRAFFIC_ARABIC_TWEETS , COLLECTION_AR_TRAFFIC ))
-	# persist_arabic_traffic_tweets_mongodb.start()
-	# persist_eng_traffic_tweets_mongodb = multiprocessing.Process(name='persist_eng_traffic_tweets_mongodb', target=persist_tweets_mongodb, args=( REDIS_NAME_TRAFFIC_TWEETS ,COLLECTION_ENG_TRAFFIC ))
-	# persist_eng_traffic_tweets_mongodb.start()
-
 	# add located_traffic_tweets
-	persist_eng_located_traffic_tweets_mongodb = multiprocessing.Process(name='persist_eng_located_traffic_tweets_mongodb', target=persist_tweets_mongodb, args=( REDIS_NAME_LOCATED_TRAFFIC_TWEETS ,COLLECTION_ENG_LOCATED_TRAFFIC ))
+	persist_eng_located_traffic_tweets_mongodb = multiprocessing.Process(name='PERSIST_COLLECTION_ENG_LOCATED_TRAFFIC_QA', target=persist_tweets_mongodb, args=( REDIS_NAME_LOCATED_TRAFFIC_TWEETS ,COLLECTION_ENG_LOCATED_TRAFFIC_QA ))
 	persist_eng_located_traffic_tweets_mongodb.start()
 
-	persisteng_located_traffic_tweets_mongodb = multiprocessing.Process(name='persist_eng_located_traffic_tweets_mongodb', target=persist_tweets_mongodb, args=( REDIS_NAME_LOCATED_ARABIC_TRAFFIC_TWEETS ,COLLECTION_AR_LOCATED_TRAFFIC ))
-	persisteng_located_traffic_tweets_mongodb.start()
+	persist_ar_located_traffic_tweets_qa_mongodb = multiprocessing.Process(name='PERSIST_COLLECTION_AR_LOCATED_TRAFFIC_QA', target=persist_tweets_mongodb, args=( REDIS_NAME_LOCATED_ARABIC_TRAFFIC_TWEETS ,COLLECTION_AR_LOCATED_TRAFFIC_QA ))
+	persist_ar_located_traffic_tweets_qa_mongodb.start()
+
+	persist_eng_located_traffic_tweets_ww_mongodb = multiprocessing.Process(name='PERSIST_COLLECTION_ENG_LOCATED_TRAFFIC_WORLDWIDE', target=persist_tweets_mongodb, args=( REDIS_NAME_WORLDWIDE_GEOLOCATED_TWEETS ,COLLECTION_ENG_LOCATED_TRAFFIC_WORLDWIDE ))
+	persist_eng_located_traffic_tweets_ww_mongodb.start()
+
 
 
