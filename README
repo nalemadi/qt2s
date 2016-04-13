@@ -47,6 +47,21 @@ There are four main classes so far (will add new one in the future):
  	********
 
 
+QT2S Dashboard
+---------------
+- Call QT2S API to read 100 tweets (using recent)
+- For each item in the list:
+	- Get coordinates
+	-Get tweet category:
+	Clean tweet text
+Use n-gram algorithm for matching categories
+Create infoWindow message
+Place marker on map
+Store last tweet date/time
+Repeat steps 1-3 every 3 minutes (by calling QT2S API - search/since)
+
+
+
  Miscellaneous
  -------------
  - We are using multiprocessing module to run all parts of the project
@@ -65,3 +80,4 @@ There are four main classes so far (will add new one in the future):
      - [REDACTED]
      - [REDACTED]
  Bing: TBD
+

@@ -215,12 +215,12 @@ def extract_entities():
 			locations = twitter_location_er.find_locations(data['text'])
 			bad_words = slang_detection.contains_bad_words(data['text'])
 			is_from_qatar = location_geocoding.is_tweet_from_qatar(data)
-			category = incident_classifier.get_tweet_category(data['text'])
 
 			# Remove a trivial false positive: Pearl Jam
 			# TODO: incorporate the black listed locations here!
 			if len(locations) > 0 and 'pearl jam' not in data['text'].lower():
 				geocoded_locations = [location_geocoding.geocode_location(location) for location in locations]
+				category = incident_classifier.get_tweet_category(data['text'])
 				data['is_from_qatar'] = is_from_qatar
 				data['contains_traffic_locations'] = True
 				data['traffic_locations'] = geocoded_locations
