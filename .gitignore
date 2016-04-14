@@ -86,3 +86,7 @@ ENV/
 
 # Rope project settings
 .ropeproject
+
+# MAC OS
+__MACOSX
+.DS_Store
