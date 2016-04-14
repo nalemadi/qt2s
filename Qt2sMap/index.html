@@ -96,7 +96,7 @@
             var currentDay = ("0"+ this.lastDate.getDate()).slice(-2);
             var currentHour = ("0"+this.lastDate.getHours()).slice(-2);
             var currentMin = ("0"+this.lastDate.getMinutes()).slice(-2);
-            var since_date = this.lastDate.getFullYear()+"-"+currentMonth+"-"+currentDay+" "+currentHour+":"+currentMin;
+            var since_date = this.lastDate.getFullYear()+"-"+currentMonth+"-"+currentDay+"T"+currentHour+":"+currentMin;
             //console.log(since_date);
             $.ajax({
                 type: "GET",

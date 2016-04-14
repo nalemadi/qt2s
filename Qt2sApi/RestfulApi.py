@@ -8,10 +8,6 @@ from resources.TrafficTweets import TrafficRecentTweets, TrafficSearchTweets
 from resources.GenerateKey import GenerateKey
 from common.database import db
 
-import os
-
-
-
 app = Flask(__name__)
 
 # This is the only way I could find to make sqlAlchemy work correctly.
@@ -30,4 +26,3 @@ if __name__ == '__main__':
 	if not os.path.exists('qt2s.sqlite'):
 		db.create_all()
 	app.run(debug=True)
-
