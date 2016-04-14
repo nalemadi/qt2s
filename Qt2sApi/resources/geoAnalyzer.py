@@ -1,7 +1,4 @@
 import re
-import json
-from datetime import datetime
-import requests
 
 class GeoAnalyzer():
 	def __init__(self):
