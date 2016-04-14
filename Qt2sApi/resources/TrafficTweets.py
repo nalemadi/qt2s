@@ -14,12 +14,10 @@ from pymongo import MongoClient, errors
 from flask_restful import fields, Resource, marshal_with, reqparse, abort
 from common.models import Client
 
-from config import *
+from mongodb_config import *
 
 try:
 	connection = MongoClient(MONGODB_HOST, MONGODB_PORT, connect=False)
-	print "<DEBUG>: Connected to MongoDB successfully!!!"
-
 
 	COLLECTION_AR_NON_TRAFFIC = connection[DBS_NAME][COLLECTION_AR_NON_TRAFFIC_NAME]
 	COLLECTION_ENG_NON_TRAFFIC = connection[DBS_NAME][COLLECTION_ENG_NON_TRAFFIC_NAME]
@@ -73,7 +71,7 @@ class tweet_coordinates(fields.Raw):
 
 class geocoded_locations(fields.Raw):
 	def output(self, key, obj):
-		return None #obj['traffic_locations']
+		return obj['traffic_locations']
 
 
 # releavant fields 

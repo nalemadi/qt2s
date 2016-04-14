@@ -35,8 +35,6 @@ with open("resources/qt2sconfig.yml", 'r') as f:
 
 try:
 	connection = MongoClient(MONGODB_HOST, MONGODB_PORT, connect=False)
-	print "<DEBUG>: Connected to MongoDB successfully!!!"
-
 
 	COLLECTION_AR_NON_TRAFFIC = connection[DBS_NAME][COLLECTION_AR_NON_TRAFFIC_NAME]
 	COLLECTION_ENG_NON_TRAFFIC = connection[DBS_NAME][COLLECTION_ENG_NON_TRAFFIC_NAME]
@@ -308,7 +306,6 @@ def persist_tweets_mongodb(redis_channel, collection):
 		# Convert datetime
 		json_data['created_at'] = to_datetime(json_data)
 		collection.insert(json_data)
-		print "<DEBUG>: Inserted data into MongoDB from  ", redis_channel
 
 
 

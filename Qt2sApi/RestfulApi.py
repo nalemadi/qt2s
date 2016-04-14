@@ -8,8 +8,6 @@ from resources.TrafficTweets import TrafficRecentTweets, TrafficSearchTweets
 from resources.GenerateKey import GenerateKey
 from common.database import db
 
-
-
 import os
 
 
@@ -31,8 +29,5 @@ api.add_resource(GenerateKey, '/api/v1/access/generate_key', endpoint="keys")
 if __name__ == '__main__':
 	if not os.path.exists('qt2s.sqlite'):
 		db.create_all()
-
-	port = int(os.environ.get('PORT', 5005))
-
-	app.run(host='0.0.0.0', port=port, debug=True)
+	app.run(debug=True)
 
