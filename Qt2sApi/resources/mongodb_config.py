@@ -3,6 +3,7 @@
 # MongoDB Configuration File
 # ---------------------------------
 
+MONGODB_HOST = '[REDACTED]'
 MONGODB_PORT = 27017
 DBS_NAME = 'QT2S_PRODUCTION'
 COLLECTION_AR_TRAFFIC_NAME = 'ar_traffic_tweets'
