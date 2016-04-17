@@ -9,7 +9,6 @@ from resources.GenerateKey import GenerateKey
 from common.database import db
 
 app = Flask(__name__)
-
 # This is the only way I could find to make sqlAlchemy work correctly.
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///qt2s.sqlite'
 db.init_app(app)

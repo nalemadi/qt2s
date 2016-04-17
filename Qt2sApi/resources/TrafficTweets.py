@@ -4,43 +4,56 @@ import json
 import yaml
 import time
 from datetime import datetime
-
-from timeAnalyzer import *
-from dataAnalyzer import *
-from geoAnalyzer import *
-
+from common.timeAnalyzer import *
+from common.dataAnalyzer import *
+from common.geoAnalyzer import *
 from pymongo import MongoClient, errors
-
 from flask_restful import fields, Resource, marshal_with, reqparse, abort
 from common.models import Client
-
-from mongodb_config import *
-
-try:
-	connection = MongoClient(MONGODB_HOST, MONGODB_PORT, connect=False)
-
-	COLLECTION_AR_NON_TRAFFIC = connection[DBS_NAME][COLLECTION_AR_NON_TRAFFIC_NAME]
-	COLLECTION_ENG_NON_TRAFFIC = connection[DBS_NAME][COLLECTION_ENG_NON_TRAFFIC_NAME]
-
-	COLLECTION_AR_NON_LOCATED_TRAFFIC = connection[DBS_NAME][COLLECTION_AR_NON_LOCATED_TRAFFIC_NAME]
-	COLLECTION_ENG_NON_LOCATED_TRAFFIC = connection[DBS_NAME][COLLECTION_ENG_NON_LOCATED_TRAFFIC_NAME]
-
-	COLLECTION_ENG_LOCATED_TRAFFIC_QA = connection[DBS_NAME][COLLECTION_ENG_LOCATED_TRAFFIC_QA_NAME]
-	COLLECTION_AR_LOCATED_TRAFFIC_QA = connection[DBS_NAME][COLLECTION_AR_LOCATED_TRAFFIC_QA_NAME]
-
-	COLLECTION_ENG_LOCATED_TRAFFIC_WORLDWIDE = connection[DBS_NAME][COLLECTION_ENG_LOCATED_TRAFFIC_WORLDWIDE_NAME]
-	#COLLECTION_AR_LOCATED_TRAFFIC_WORLDWIDE = connection[DBS_NAME][COLLECTION_AR_LOCATED_TRAFFIC_WORLDWIDE_NAME]
-
-except errors.ConnectionFailure, e:
-   print "Could not connect to MongoDB: %s" % e
+from common.mongodb_config import *
 
 
+# ---------------------------------
+# Configuration File
+# ---------------------------------
+with open("resources/qt2sconfig.yml", 'r') as f:
+	cfg = yaml.load(f)
+
+
+# -------------------- #
+# MongoDB Connection
+# -------------------- #
+
+MONGODB_HOST = cfg['mongodb']['hostname']
+MONGODB_PORT = cfg['mongodb']['port']
+DBS_NAME = cfg['mongodb']['dbname']
+COLLECTION_AR_NON_TRAFFIC_NAME = cfg['mongodb']['collections']['COLLECTION_AR_NON_TRAFFIC_NAME']
+COLLECTION_ENG_NON_TRAFFIC_NAME = cfg['mongodb']['collections']['COLLECTION_ENG_NON_TRAFFIC_NAME']
+COLLECTION_AR_NON_LOCATED_TRAFFIC_NAME = cfg['mongodb']['collections']['COLLECTION_AR_NON_LOCATED_TRAFFIC_NAME']
+COLLECTION_ENG_NON_LOCATED_TRAFFIC_NAME = cfg['mongodb']['collections']['COLLECTION_ENG_NON_LOCATED_TRAFFIC_NAME']
+COLLECTION_ENG_LOCATED_TRAFFIC_QA_NAME = cfg['mongodb']['collections']['COLLECTION_ENG_LOCATED_TRAFFIC_QA_NAME']
+COLLECTION_AR_LOCATED_TRAFFIC_QA_NAME = cfg['mongodb']['collections']['COLLECTION_AR_LOCATED_TRAFFIC_QA_NAME']
+COLLECTION_ENG_LOCATED_TRAFFIC_WORLDWIDE_NAME = cfg['mongodb']['collections']['COLLECTION_ENG_LOCATED_TRAFFIC_WORLDWIDE_NAME']
+
+connection = MongoClient(MONGODB_HOST, MONGODB_PORT, connect=False)
+COLLECTION_AR_NON_TRAFFIC = connection[DBS_NAME][COLLECTION_AR_NON_TRAFFIC_NAME]
+COLLECTION_ENG_NON_TRAFFIC = connection[DBS_NAME][COLLECTION_ENG_NON_TRAFFIC_NAME]
+COLLECTION_AR_NON_LOCATED_TRAFFIC = connection[DBS_NAME][COLLECTION_AR_NON_LOCATED_TRAFFIC_NAME]
+COLLECTION_ENG_NON_LOCATED_TRAFFIC = connection[DBS_NAME][COLLECTION_ENG_NON_LOCATED_TRAFFIC_NAME]
+COLLECTION_ENG_LOCATED_TRAFFIC_QA = connection[DBS_NAME][COLLECTION_ENG_LOCATED_TRAFFIC_QA_NAME]
+COLLECTION_AR_LOCATED_TRAFFIC_QA = connection[DBS_NAME][COLLECTION_AR_LOCATED_TRAFFIC_QA_NAME]
+COLLECTION_ENG_LOCATED_TRAFFIC_WORLDWIDE = connection[DBS_NAME][COLLECTION_ENG_LOCATED_TRAFFIC_WORLDWIDE_NAME]
+
+# -------------------- #
+# Instantes 
+# -------------------- #
 timeanalyzer = TimeAnalyzer()
 dataanalyzer = DataAnalyzer()
 geoAnalyzer = GeoAnalyzer()
 
-
-
+# -------------------- #
+# Classes 
+# -------------------- #
 class user_id_str(fields.Raw):
 	def output(self, key, obj):
 		return obj['user']['id_str']
@@ -73,8 +86,9 @@ class geocoded_locations(fields.Raw):
 	def output(self, key, obj):
 		return obj['traffic_locations']
 
-
-# releavant fields 
+# -------------------- #
+# releavant fields
+# -------------------- #
 tweet_fields = {
 	'tweet_id': fields.String(attribute='id_str'),
 	'tweet_text': fields.String(attribute='text'),
@@ -93,6 +107,10 @@ tweet_fields = {
 	'category': fields.String(attribute='category')
 }
 
+
+# -------------------- #
+# Traffic Recent Tweets
+# -------------------- #
 
 class TrafficRecentTweets(Resource):
 	def __init__(self):
@@ -175,7 +193,9 @@ class TrafficRecentTweets(Resource):
 
 
 
-
+# -------------------- #
+# Traffic Search Tweets
+# -------------------- #
 
 class TrafficSearchTweets(Resource):
 	def __init__(self):
