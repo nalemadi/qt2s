@@ -4,9 +4,9 @@
 # ---------------------------------
 
 
-MONGODB_HOST = 'localhost'
+MONGODB_HOST = '127.0.0.1'
 MONGODB_PORT = 27017
-DBS_NAME = 'QT2S_PRODUCTION'
+DBS_NAME = 'QT2S'
 COLLECTION_AR_TRAFFIC_NAME = 'ar_traffic_tweets'
 COLLECTION_ENG_TRAFFIC_NAME = 'en_traffic_tweets'
 COLLECTION_AR_NON_TRAFFIC_NAME = 'non_traffic_arabic_tweets'
