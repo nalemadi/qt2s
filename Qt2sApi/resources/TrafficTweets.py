@@ -15,7 +15,7 @@ from common.models import Client
 # ---------------------------------
 # Configuration File
 # ---------------------------------
-with open("resources/qt2sconfig.yml", 'r') as f:
+with open("resources/apiconfig.yml", 'r') as f:
 	cfg = yaml.load(f)
 
 
