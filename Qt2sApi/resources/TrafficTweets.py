@@ -10,7 +10,6 @@ from common.geoAnalyzer import *
 from pymongo import MongoClient, errors
 from flask_restful import fields, Resource, marshal_with, reqparse, abort
 from common.models import Client
-from common.mongodb_config import *
 
 
 # ---------------------------------
