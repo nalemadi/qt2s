@@ -92,7 +92,7 @@ class geocoded_locations(fields.Raw):
 tweet_fields = {
 	'tweet_id': fields.String(attribute='id_str'),
 	'tweet_text': fields.String(attribute='text'),
-	'tweet_timestamp': fields.String(attribute='created_at'),
+	'tweet_timestamp': fields.String(attribute='timestamp_ms'),
 	'tweet_language': fields.String(attribute='lang'),
 	'tweet_coordinates': tweet_coordinates,
 	'user_id': user_id_str,
