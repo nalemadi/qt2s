@@ -46,7 +46,7 @@
         // add legend to map
         map.controls[gm.ControlPosition.LEFT_BOTTOM].push(document.getElementById('legend'));
         var legend = document.getElementById('legend');
-        console.log(tweet_categorizes.length);
+        //console.log(tweet_categorizes.length);
         for (var i=0; i<tweet_categorizes.length; i++) {
             var name = tweet_categorizes[i].name;
             var color = tweet_categorizes[i].color;
@@ -98,7 +98,6 @@
             var currentMin = ("0"+this.lastDate.getMinutes()).slice(-2);
             var currentSec = ("0"+this.lastDate.getSeconds()).slice(-2);
             var since_date = this.lastDate.getFullYear()+"-"+currentMonth+"-"+currentDay+"T"+currentHour+":"+currentMin+":"+currentSec;
-            //console.log(since_date);
             $.ajax({
                 type: "GET",
                 url: "http://localhost/qt2s/api/v1/tweets/search?q=a&since="+since_date+"&key="+api_key,
@@ -121,7 +120,7 @@
             if(alldata.res[i] != '') {
                 var obj = alldata.res[i];
                 if (this.lastDate != null) {
-                    var currentDate = new Date(obj.tweet_timestamp);
+                    var currentDate = new Date(parseInt(obj.tweet_timestamp));
                     if (currentDate > this.lastDate) {
                         this.lastDate = currentDate;
                         console.log('update lastDate to: '+this.lastDate);
@@ -144,7 +143,7 @@
             } else {
                 lastObj = alldata.res[alldata.res.length-1];
             }
-            this.lastDate = new Date(lastObj.tweet_timestamp);
+            this.lastDate = new Date(parseInt(lastObj.tweet_timestamp));
             console.log('lastDate: '+this.lastDate);
         }
         console.log('markers length '+markers.length);
