@@ -91,7 +91,7 @@ class geocoded_locations(fields.Raw):
 tweet_fields = {
 	'tweet_id': fields.String(attribute='id_str'),
 	'tweet_text': fields.String(attribute='text'),
-	'tweet_timestamp': fields.String(attribute='timestamp_ms'),
+	'tweet_timestamp': fields.Integer(attribute='timestamp_ms'),
 	'tweet_language': fields.String(attribute='lang'),
 	'tweet_coordinates': tweet_coordinates,
 	'user_id': user_id_str,
@@ -201,7 +201,7 @@ class TrafficSearchTweets(Resource):
 		self.parser = reqparse.RequestParser()
 		self.parser.add_argument('key', type=str, required=True, help='API Key')
 		self.parser.add_argument('language', default='en', type=str, help='provide language of tweets. example: ar/en')
-		self.parser.add_argument('q', action='append', required=True, help='query terms')
+		self.parser.add_argument('q', action='append', help='query terms')
 		self.parser.add_argument('from', type=str, help='tweets posted after this datetime: yyyy-mm-dd hh:mm')
 		self.parser.add_argument('to', type=str, help='tweets posted before this datetime: yyyy-mm-dd hh:mm')
 		self.parser.add_argument('since', type=str, help='tweets posted since this datetime: yyyy-mm-dd hh:mm')
@@ -222,21 +222,30 @@ class TrafficSearchTweets(Resource):
 		if not self.verify_key(key):
 			abort(401, message="Unauthorized user")
 
-		# Consider a query in the format: [u'[keyword1,keyword2,keyword3,...]']
-		query = [w.strip() for w in query[0].split(',')]
-
+	
 		if language == 'en':
 
 			mongo_collection = COLLECTION_ENG_LOCATED_TRAFFIC_QA
 		elif language == 'ar':
 			mongo_collection = COLLECTION_AR_LOCATED_TRAFFIC_QA
 
-		if fromts and tots:
-			tweets = self._get_filtered_tweets_from_to(mongo_collection, query, fromts, tots)
-		elif since:
-			tweets = self._get_filtered_tweets_since(mongo_collection , query, since)
+		if query:
+			# Consider a query in the format: [u'[keyword1,keyword2,keyword3,...]']
+			query = [w.strip() for w in query[0].split(',')]
+
+			if fromts and tots:
+				tweets = self._get_tweets_from_to_keyword(mongo_collection, query, fromts, tots)
+			elif since:
+				tweets = self._get_tweets_since_keyword(mongo_collection , query, since)
+			else:
+				tweets = self._get_filtered_tweets(mongo_collection , query)
 		else:
-			tweets = self._get_filtered_tweets(mongo_collection , query)
+			if fromts and tots:
+				tweets = self._get_tweets_from_to(mongo_collection, fromts, tots)
+			elif since:
+				tweets = self._get_tweets_since(mongo_collection , since)
+
+
 
 		output = dict()
 		output['res'] = tweets
@@ -265,7 +274,7 @@ class TrafficSearchTweets(Resource):
 		return tweets
 
 	@marshal_with(tweet_fields)
-	def _get_filtered_tweets_since(self,collection,  query, since):
+	def _get_tweets_since_keyword(self,collection,  query, since):
 		"""
 		Retrieves all the tweets posted after "since" that match one of the keywords in query
 		:param query: list of keywords
@@ -276,7 +285,7 @@ class TrafficSearchTweets(Resource):
 		return tweets
 
 	@marshal_with(tweet_fields)
-	def _get_filtered_tweets_from_to(self,collection,  query, fromts, tots):
+	def _get_tweets_from_to_keyword(self,collection,  query, fromts, tots):
 		"""
 		Retrieves all the tweets that match one of the keywords in query, and that are posted in
 		the interval [fromts, tots].
@@ -284,6 +293,28 @@ class TrafficSearchTweets(Resource):
 		:return: list of tweets
 		"""
 		tweets = timeanalyzer.find_from_to(collection,  query, fromts, tots)
+
+		return tweets
+
+	@marshal_with(tweet_fields)
+	def _get_tweets_since(self,collection,since):
+		"""
+		Retrieves all the tweets posted after "since" 
+		:param query: list of keywords
+		:return: list of tweets
+		"""
+		tweets = timeanalyzer.filter_since_dt(collection,since)
+
+		return tweets
+
+	@marshal_with(tweet_fields)
+	def _get_tweets_from_to(self,collection,fromts, tots):
+		"""
+		Retrieves all the tweets that are posted in the interval [fromts, tots].
+		:param query: list of keywords
+		:return: list of tweets
+		"""
+		tweets = timeanalyzer.filter_from_to(collection,fromts, tots)
 
 		return tweets
 
