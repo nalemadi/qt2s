@@ -1,11 +1,14 @@
 import os
+import sys
 import json
 from datetime import timedelta, date, datetime
 import calendar
 from collections import defaultdict
 
 class Congestion_Level:
-    def __init__(self,path):
+    #TODO:remove unnecessary functions
+    def __init__(self):
+        path = sys.argv[1]
         list = []
         for file in os.listdir(path):
             if file.endswith(".tsv"):
@@ -19,7 +22,7 @@ class Congestion_Level:
                     route_details['date'] = broken[0].strip()
                     route_details['timestamp'] = float(broken[1].strip())
                     route_details['distance'] = broken[2].strip()
-                    route_details['duration'] = broken[3].strip()
+                    route_details['duration'] = int(broken[3].strip())
                     route_details_list.append(route_details)
                 route_dict[route_name[0]] = route_details_list
                 #print route_dict
@@ -140,9 +143,10 @@ class Congestion_Level:
 
     def get_weekly_report(self):
         """
-        Add comments
-        :return:
+        this function create a week report of congestion_level data by hour
+        :return: week list
         """
+        #TODO: write week report to file
         routes = self.list['routes']
         for route in routes:
             trajectory_name = route.keys()[0]
@@ -157,17 +161,30 @@ class Congestion_Level:
                 break
             else:
                 day_count = -1
+                week_count = 7
+                total_weeks_list = []
+                week_list = []
+                week_dict = {}
+                week_key = 'week%s'%t_start_date
+                #print week_key
                 for r_date in self.daterange(t_start_date, t_last_date):
                     day_count += 1
                     if day_count < 7:
-                       self.process_day_record_by_hour(r_date, dates_record)
+                       week_list.append(self.process_day_record_by_hour(r_date, dates_record))
                     else:
-                        # TODO change to weekddMM as key
-                        print 'new week'
+                        print week_key
+                        week_dict[week_key] = week_list
+                        total_weeks_list.append(week_dict)
+                        # new week
+                        start_week_date = t_start_date+timedelta(days=week_count)
+                        week_key = 'week%s'%start_week_date
+                        week_list = []
+                        week_count += 7
                         day_count = 0
-                        self.process_day_record_by_hour(r_date, dates_record)
+                        week_list.append(self.process_day_record_by_hour(r_date, dates_record))
+                print len(total_weeks_list)
                 # shoulld be removed, for testing only
-                break
+                #break
         return None
 
     def process_day_record_by_hour(self, r_date, dates_record):
@@ -176,8 +193,8 @@ class Congestion_Level:
         day_key = self.week_days_list[record_day]
         day_dict_list = []
         for hour in range(0, 24, 1):
-            # TODO: change duration list to average of sum of duration/min duration of the day
             duration_list = []
+            duration_avg = 0
             day_hour_dict = defaultdict(int)
             for record in dates_record:
                 record_timestamp = record['timestamp']
@@ -188,16 +205,18 @@ class Congestion_Level:
                     if record_datetime.hour == hour:
                         #print 'match', hour
                         duration_list.append(record['duration'])
-            day_hour_dict[day_key,hour] = duration_list
+            if len(duration_list) != 0:
+                #TODO divid sum by min duration
+                duration_avg = sum(duration_list)/len(duration_list)
+            day_hour_dict[day_key,hour] = duration_avg
             day_dict_list.append(day_hour_dict)
-        print day_dict_list
-        return None
+        #print day_dict_list
+        return day_dict_list
 
 if __name__ == '__main__':
-    #TODO: change path to arg
-    congestion_level = Congestion_Level('data')
+    congestion_level = Congestion_Level()
+    congestion_level.get_weekly_report()
     #print congestion_level.list
     #print congestion_level.get_routes_on_date(None)
     #print congestion_level.get_routes_on_day("SUNDAY")
     #print json.dumps(congestion_level.time_series_of_week_hourly())
-    congestion_level.get_weekly_report()
