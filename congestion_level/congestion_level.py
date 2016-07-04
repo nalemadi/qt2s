@@ -25,7 +25,6 @@ class Congestion_Level:
                     route_details['duration'] = int(broken[3].strip())
                     route_details_list.append(route_details)
                 route_dict[route_name[0]] = route_details_list
-                #print route_dict
                 list.append(route_dict)
         routes_dict = {}
         routes_dict['routes'] = list
@@ -182,16 +181,16 @@ class Congestion_Level:
                         week_count += 7
                         day_count = 0
                         week_list.append(self.process_day_record_by_hour(r_date, dates_record))
-                print len(total_weeks_list)
-                # shoulld be removed, for testing only
-                #break
-        return None
+                #print len(total_weeks_list)
+        return total_weeks_list
 
     def process_day_record_by_hour(self, r_date, dates_record):
         record_day = calendar.day_name[r_date.weekday()]
-        print record_day, r_date
+        #print record_day, r_date
+        print r_date
         day_key = self.week_days_list[record_day]
         day_dict_list = []
+        total_duration_list = []
         for hour in range(0, 24, 1):
             duration_list = []
             duration_avg = 0
@@ -200,23 +199,23 @@ class Congestion_Level:
                 record_timestamp = record['timestamp']
                 record_date = date.fromtimestamp(record_timestamp)
                 record_datetime = datetime.fromtimestamp(record_timestamp)
-                #print record_datetime
                 if record_date == r_date: # same day
                     if record_datetime.hour == hour:
-                        #print 'match', hour
                         duration_list.append(record['duration'])
+                        total_duration_list.append(record['duration'])
             if len(duration_list) != 0:
                 #TODO divid sum by min duration
                 duration_avg = sum(duration_list)/len(duration_list)
             day_hour_dict[day_key,hour] = duration_avg
             day_dict_list.append(day_hour_dict)
-        #print day_dict_list
+        # TODO get min duration in a day
+        # there is an issue where min() returns -1
+        min_duration = min(total_duration_list)
+        print 'min duration', min_duration, 'length total', len(total_duration_list)
         return day_dict_list
 
 if __name__ == '__main__':
     congestion_level = Congestion_Level()
-    congestion_level.get_weekly_report()
-    #print congestion_level.list
-    #print congestion_level.get_routes_on_date(None)
-    #print congestion_level.get_routes_on_day("SUNDAY")
-    #print json.dumps(congestion_level.time_series_of_week_hourly())
+    print congestion_level.get_weekly_report()
+    # TODO convert list to json
+    #print json.dumps(congestion_level.get_weekly_report(),ensure_ascii=False)
