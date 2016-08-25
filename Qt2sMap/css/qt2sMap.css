@@ -14,7 +14,7 @@
 	}
 
 #container {
-	height:1170px;
+	height:1300px;
 	width:1000px;
 	}
 
@@ -40,6 +40,7 @@
 	width:1000px;
 	box-shadow: 10px 10px 5px #888888
 	}
+
 #trends_title {
 	background-color:orange;
 	color:black;
@@ -58,7 +59,7 @@
 	box-shadow: 10px 10px 5px #888888
 	}
 
-#maps_title {
+#section_title {
 	background-color:orange;
 	color:black;
 	text-align:center;
@@ -67,6 +68,13 @@
 #maps_content {
 	height:490px;
 	width:1000px;
+	}
+
+#graph_content {
+	height:600px;
+	width:1010px;
+	margin:20px auto;
+	box-shadow: 10px 10px 5px #888888
 	}
 
 #pophashtags {
@@ -113,7 +121,7 @@
 	height:50px;
 	width:100%;
 	float:left;
-	margin-top:20px;
+	margin-top:150px;
 	color:white;
 	text-align:center;
 	font-size:12px;
@@ -133,7 +141,7 @@
     width: 12px;
     margin-right: 3px;
     float: left;
-      }
+}
 
 .red {
 	background: #C00;
