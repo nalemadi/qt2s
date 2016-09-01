@@ -19,6 +19,7 @@ from geocoding.LocationGeocoding import LocationGeocoding
 from traffic_classifier.ArabicTwitterClassifier import ArabicTwitterClassifier
 from location_recognition.ArabicTwitterLocationER import ArabicTwitterLocationER
 from incident_classifier.IncidentClassifier import IncidentClassifier
+from accuracy_filter.AccuracyFilter import AccuracyFilter
 
 
 from resources.mongodb_config import *
@@ -77,6 +78,7 @@ GEOCODED_LOCATION_DICT_FILE = 'data/geolocated_locations.txt'
 GEOCODED_LOCATION_AR_DICT_FILE = 'data/geolocated_locations_ar.txt'
 SLANG_DICT_FILE = 'data/slang_dict.csv'
 CATEGORIES_DICT_FILE = 'data/categories_dict.txt'
+BLACKLISTED_LOCATIONS_FILE = 'data/black_listed_locations.txt'
 
 # ---------------------------------
 # Twitter/Google/Bing 
@@ -200,6 +202,7 @@ def extract_entities():
 	location_geocoding = LocationGeocoding('en', google_key=GOOGLE_KEY, bing_key=BING_KEY, country_code='QA', geocoded_location_file=GEOCODED_LOCATION_DICT_FILE)
 	slang_detection = SlangDetection(slang_dictionary_file=SLANG_DICT_FILE)
 	incident_classifier = IncidentClassifier(categories_dictionary_file=CATEGORIES_DICT_FILE)
+	accuracy_filter = AccuracyFilter(blacklisted_locations_file=BLACKLISTED_LOCATIONS_FILE)
 	logger.info("Starting LocationTagger. Will read from %s and write into %s", read_channel, write_channel)
 
 	while True:
@@ -220,10 +223,9 @@ def extract_entities():
 			locations = twitter_location_er.find_locations(data['text'])
 			bad_words = slang_detection.contains_bad_words(data['text'])
 			is_from_qatar = location_geocoding.is_tweet_from_qatar(data)
+			has_blacklisted_location = accuracy_filter.has_black_listed_location(data['text'])
 
-			# Remove a trivial false positive: Pearl Jam
-			# TODO: incorporate the black listed locations here!
-			if len(locations) > 0 and 'pearl jam' not in data['text'].lower():
+			if len(locations) > 0 and not has_blacklisted_location:
 				geocoded_locations = [location_geocoding.geocode_location(location) for location in locations]
 				category = incident_classifier.get_tweet_category(data['text'])
 				data['is_from_qatar'] = is_from_qatar
@@ -350,6 +352,3 @@ if __name__ == '__main__':
 
 	persist_eng_located_traffic_tweets_ww_mongodb = multiprocessing.Process(name='PERSIST_COLLECTION_ENG_LOCATED_TRAFFIC_WORLDWIDE', target=persist_tweets_mongodb, args=( REDIS_NAME_WORLDWIDE_GEOLOCATED_TWEETS ,COLLECTION_ENG_LOCATED_TRAFFIC_WORLDWIDE ))
 	persist_eng_located_traffic_tweets_ww_mongodb.start()
-
-
-
