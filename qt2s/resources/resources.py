@@ -57,3 +57,25 @@ def ngrams(inputText, n):
 		g = ' '.join(inputText[i:i+n])
 		output.append(g)
 	return output
+
+def get_blacklisted_locations():
+	list = []
+	with open('../data/black_listed_locations.txt') as f:
+		for line in f:
+			bl_location = line.strip().lower()
+			list.append(bl_location)
+	return list
+
+
+def has_black_listed_location(text):
+	"""
+	check whether tweet text has a blacklisted location
+	:param text:
+	:return: boolean value
+	"""
+	text = text.lower()
+	blacklisted_locations = get_blacklisted_locations()
+	for bl_location in blacklisted_locations:
+		if bl_location in text:
+			return True
+	return False
