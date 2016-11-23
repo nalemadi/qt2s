@@ -8,7 +8,6 @@ from tweepy.streaming import StreamListener
 from tweepy import OAuthHandler
 from tweepy import Stream
 import json
-import redis
 
 logger = logging.getLogger(__name__)
 
@@ -97,26 +96,10 @@ class TwitterCollector(StreamListener):
 		auth = OAuthHandler(self.twitter_key['consumer_key'], self.twitter_key['consumer_secret'])
 		auth.set_access_token(self.twitter_key['access_token'], self.twitter_key['access_token_secret'])
 		while True:
-			print 'Reconnecting to twitter stream after disconnection'
-			#logger.warning('Reconnecting to twitter stream after disconnection.')
+			logger.warning('Reconnecting to twitter stream after disconnection.')
 			try:
-				print 'inside try'
 				sapi = Stream(auth, self)
-				print 'next step'
 				sapi.filter(track=self.keywords)
 			except Exception as e:
-				print "Something went wrong with the listener, the exception is: %s" %(e)
-				#logger.error("Something went wrong with the listener, the exception is: %s", e)
+				logger.error("Something went wrong with the listener, the exception is: %s", e)
 				continue
-
-if __name__ == '__main__':
-	print 'test'
-	TWITTER_KEY = {'consumer_key': '[REDACTED]', 'consumer_secret': '[REDACTED]', 'access_token': '[REDACTED]', 'access_token_secret': '[REDACTED]'}
-	#TWITTER_KEY = {'consumer_key': 'FiFcM5LQFMsbyJcN1IqNFBSAw', 'consumer_secret': '2j96euyEVFdgboTCwLCJYgd6V5sdT7MfMTXpyWflAkn6290STR', 'access_token': '2864252562-ckJRJyw6FqrzT3rUXV6CeYNPLP41wQOvycbhODx', 'access_token_secret': '0Yn9OsrGZGAkQvwWM8lxslSUtxFaC05T10JYvMdvhb6HG'}
-	KEYWORD_DICT_FILE = '../data/traffic_dict.csv'
-	REDIS_DB = redis.Redis(host='localhost', port='6379')
-	write_channel = '%s:%s' % ('QT2S', 'raw_tweets')
-	write_channel_arabic_tweets = '%s:%s' % ('QT2S', 'raw_arabic_tweets')
-	twitter_collector = TwitterCollector(r_db=REDIS_DB, r_channel=write_channel, r_arabic_channel=write_channel_arabic_tweets,
-										keyword_dict_file=KEYWORD_DICT_FILE, twitter_key=TWITTER_KEY)
-	twitter_collector.get_tweets()
