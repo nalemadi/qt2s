@@ -85,6 +85,15 @@ class geocoded_locations(fields.Raw):
 	def output(self, key, obj):
 		return obj['traffic_locations']
 
+class tweet_images(fields.Raw):
+        def output(self, key, obj):
+                imgs = None
+                if obj['entities'] and 'media' in obj['entities'].keys():
+                        imgs = []
+                        for media in obj['entities']['media']:
+                                imgs.append(media['media_url'])
+                return imgs
+
 # -------------------- #
 # releavant fields
 # -------------------- #
@@ -103,7 +112,8 @@ tweet_fields = {
 	'is_about_traffic': fields.Boolean(attribute='is_about_traffic'),
 	'contains_traffic_locations': fields.Boolean(attribute='contains_traffic_locations', default=False),
 	'traffic_locations': geocoded_locations,
-	'category': fields.String(attribute='category')
+	'category': fields.String(attribute='category'),
+	'images': tweet_images
 }
 
 
