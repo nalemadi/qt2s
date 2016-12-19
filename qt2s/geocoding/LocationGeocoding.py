@@ -8,9 +8,9 @@ import json
 import logging
 import googlemaps
 from googlemaps.exceptions import ApiError, TransportError, Timeout, HTTPError
-from resources.resources import clean_text
+from qt2s.resources.resources import clean_text
 
-logger = logging.getLogger('__name__')
+#logger = logging.getLogger('__name__')
 
 
 class LocationGeocoding:
@@ -57,16 +57,20 @@ class LocationGeocoding:
 			g_location = self._format_google_location(res[0])
 			return g_location
 		except ApiError as e:
-			logger.error("problem with googlemap geocoding (ApiError): %s", e)
+			#logger.error("problem with googlemap geocoding (ApiError): %s", e)
+			print "problem with googlemap geocoding (ApiError): %s", e
 			return None
 		except HTTPError as e:
-			logger.error("problem with googlemap geocoding (HTTPError): %s", e)
+			#logger.error("problem with googlemap geocoding (HTTPError): %s", e)
+			print "problem with googlemap geocoding (HTTPError): %s", e
 			return None
 		except Timeout as e:
-			logger.error("problem with googlemap geocoding (Timeout): %s", e)
+			#logger.error("problem with googlemap geocoding (Timeout): %s", e)
+			print "problem with googlemap geocoding (Timeout): %s", e
 			return None
 		except TransportError as e:
-			logger.error("problem with googlemap geocoding (TransportError): %s", e)
+			#logger.error("problem with googlemap geocoding (TransportError): %s", e)
+			print "problem with googlemap geocoding (TransportError): %s", e
 			return None
 
 	def bing_geocoding(self, location):
@@ -117,7 +121,8 @@ class LocationGeocoding:
 			results = response.read()
 
 		except:
-			logger.error('Unable to reach Nominatim Server. Request for location: {}'.format(location))
+			#logger.error('Unable to reach Nominatim Server. Request for location: {}'.format(location))
+			print 'Unable to reach Nominatim Server. Request for location: {}'.format(location)
 			return None
 
 		try:
@@ -229,26 +234,24 @@ class LocationGeocoding:
 			request_open.close()
 			return json.loads(response)
 		except urllib2.HTTPError as e:
-			logger.error('%s: %s - Needs to generate new tokens', e.code, e.reason)
+			print '%s: %s - Needs to generate new tokens', e.code, e.reason
+			#logger.error('%s: %s - Needs to generate new tokens', e.code, e.reason)
 			return None
 
-	def bash_geocoding(self):
+	def bash_geocoding(self, location_dic_file, geolocated_locations_file):
 		"""
 		Returns the different geocoordinates of a set of locations.
 		@author: Noora
 		:return: a file in which each line contains the geo coordinates of a given location.
 		"""
-
 		# open location_dict
 		locations = []
-		location_dic_file = open('../data/location_dict.txt')
 		for line in location_dic_file:
 			#x = line.split(';')
 			#loc = x[2].strip()
 			locations.append(line.strip())
 		location_dic_file.close()
 
-		geolocated_locations_file = open('../data/geolocated_locations.txt', 'w')
 		for location in locations:
 			broken = location.split(',')
 			location_name = broken[0]
@@ -304,7 +307,6 @@ class LocationGeocoding:
 		@author: Sofiane
 		:return: a json object with all geocoding information.
 		"""
-
 		location_dict = dict()
 		location_dict['name'] = location
 		location = location.encode('utf-8')
@@ -379,7 +381,6 @@ class LocationGeocoding:
 		else:
 			return False
 
-
 	@staticmethod
 	def get_qatar_locations():
 		"""
@@ -397,11 +398,17 @@ class LocationGeocoding:
 
 if __name__ == '__main__':
 	GEOCODED_LOCATION_DICT_FILE = '../data/geolocated_locations.txt'
+	GEOCODED_LOCATION_DICT_FILE_AR = '../data/geolocated_locations_ar.txt'
 	GOOGLE_KEY = '[REDACTED]'
 	BING_KEY = '[REDACTED]'
-	GEOCODED_LOCATION_DICT_FILE = '../data/geolocated_locations.txt'
 	lg = LocationGeocoding('en', google_key=GOOGLE_KEY, bing_key=BING_KEY, country_code='QA', geocoded_location_file=GEOCODED_LOCATION_DICT_FILE)
-	#lg.bash_geocoding()
+	#lg_ar = LocationGeocoding('ar', google_key=GOOGLE_KEY, bing_key=BING_KEY, country_code='QA', geocoded_location_file=GEOCODED_LOCATION_DICT_FILE_AR)
+
+	location_dic_file_en = open('../data/location_dict.txt')
+	geolocated_locations_file_en = open('../data/geolocated_locations_latest.txt', 'w')
+	location_dic_file_ar = open('../data/location_dict_ar.txt')
+	geolocated_locations_file_ar = open('../data/geolocated_locations_ar_latest.txt', 'w')
+	lg.bash_geocoding(location_dic_file_en, geolocated_locations_file_en)
 	#print lg.request_online_geocodes('Landmark')
 	# Geocode all streets.
 	# outputfile = open('../data/qatar_streets_roads_geocoded.txt', 'w')
