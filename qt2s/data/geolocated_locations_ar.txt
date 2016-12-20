@@ -68,6 +68,6 @@
 {"name": "\u0641\u0631\u064a\u062c \u0628\u0646 \u0639\u0645\u0631\u0627\u0646", "coordinates": {"bing": null, "google": {"lat": 25.3037871, "lng": 51.495299, "formatted_address": "Fereej Bin Omran, Doha, Qatar"}, "nominatim": null}}
 {"name": "\u0641\u0631\u064a\u062c \u0643\u0644\u064a\u0628", "coordinates": {"bing": null, "google": {"lat": 25.3138281, "lng": 51.4913579, "formatted_address": "Fereej Kulaib, Doha, Qatar"}, "nominatim": null}}
 {"name": "\u0628\u0646 \u0645\u062d\u0645\u0648\u062f", "coordinates": {"bing": null, "google": {"lat": 25.2831444, "lng": 51.51472949999999, "formatted_address": "Ibn Mahmoud St, Doha, Qatar"}, "nominatim": {"lat": "25.2904983", "lng": "51.506974", "formatted_address": "Ahmed Bin Ali Street, Fereej Bin Mahmoud (22), Doha, \u200f\u0642\u0637\u0631\u200e"}}}
-{"alternatives": null, "name": "\u0627\u0644\u0645\u0648\u0644", "coordinates": {"bing": {"lat": 25.34734, "lng": 51.45953, "formatted_address": "Umm Al Houl Street, Duhail, Doha, Qatar"}, "google": null, "nominatim": null}}
-{"alternatives": null, "name": "\u0627\u0632\u062f\u0627\u0646 \u0645\u0648\u0644", "coordinates": null}
-{"alternatives": null, "name": "\u0642\u0637\u0631 \u0645\u0648\u0644", "coordinates": null}
+{"name": "\u0627\u0644\u0645\u0648\u0644", "coordinates": {"bing": {"lat": 25.34734, "lng": 51.45953, "formatted_address": "Umm Al Houl Street, Duhail, Doha, Qatar"}, "google": null, "nominatim": null}}
+{"name": "\u0627\u0632\u062f\u0627\u0646 \u0645\u0648\u0644", "coordinates": null}
+{"name": "\u0642\u0637\u0631 \u0645\u0648\u0644", "coordinates": null}
