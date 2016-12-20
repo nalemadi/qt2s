@@ -213,7 +213,7 @@ def extract_entities():
 
 		is_worldwide_tweet = location_geocoding.is_tweet_outside_qatar(data)
 		if is_worldwide_tweet:
-			category = incident_classifier.get_tweet_category(data['text'])
+			category = incident_classifier.get_tweet_category(data['text'], 'en')
 			data['category'] = category
 			REDIS_DB.rpush(worldwide_tweets_channel, json.dumps(data))
 			logger.info("Tweet outside Qatar")
@@ -225,7 +225,7 @@ def extract_entities():
 
 			if len(locations) > 0 and not has_blacklisted_location:
 				geocoded_locations = [location_geocoding.geocode_location(location) for location in locations]
-				category = incident_classifier.get_tweet_category(data['text'])
+				category = incident_classifier.get_tweet_category(data['text'], 'en')
 				data['is_from_qatar'] = is_from_qatar
 				data['contains_traffic_locations'] = True
 				data['traffic_locations'] = geocoded_locations
@@ -261,7 +261,7 @@ def extract_ar_entities():
 		is_from_qatar = location_geocoding.is_tweet_from_qatar(data)
 		if len(locations) > 0:
 			geocoded_locations = [location_geocoding.geocode_location(location) for location in locations]
-			category = incident_classifier.get_tweet_category(data['text'])
+			category = incident_classifier.get_tweet_category(data['text'], 'ar')
 			data['is_from_qatar'] = is_from_qatar
 			data['contains_traffic_locations'] = True
 			data['traffic_locations'] = geocoded_locations
