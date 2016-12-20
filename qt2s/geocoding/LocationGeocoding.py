@@ -232,7 +232,7 @@ class LocationGeocoding:
 			logger.error('%s: %s - Needs to generate new tokens', e.code, e.reason)
 			return None
 
-	def bash_geocoding(self):
+	def bash_geocoding(self, location_dic_file_name, geolocated_locations_file_name):
 		"""
 		Returns the different geocoordinates of a set of locations.
 		@author: Noora
@@ -241,14 +241,14 @@ class LocationGeocoding:
 
 		# open location_dict
 		locations = []
-		location_dic_file = open('../data/location_dict.txt')
+		location_dic_file = open(location_dic_file_name)
 		for line in location_dic_file:
 			#x = line.split(';')
 			#loc = x[2].strip()
 			locations.append(line.strip())
 		location_dic_file.close()
 
-		geolocated_locations_file = open('../data/geolocated_locations.txt', 'w')
+		geolocated_locations_file = open(geolocated_locations_file_name, 'w')
 		for location in locations:
 			broken = location.split(',')
 			location_name = broken[0]
@@ -394,20 +394,26 @@ class LocationGeocoding:
 		return locations
 
 if __name__ == '__main__':
+	"""
+	for testing
+	"""
+ 	GOOGLE_KEY = '[REDACTED]'
+ 	BING_KEY = '[REDACTED]'
 	GEOCODED_LOCATION_DICT_FILE = '../data/geolocated_locations.txt'
-	GOOGLE_KEY = '[REDACTED]'
-	BING_KEY = '[REDACTED]'
-	GEOCODED_LOCATION_DICT_FILE = '../data/geolocated_locations.txt'
-	lg = LocationGeocoding('en', google_key=GOOGLE_KEY, bing_key=BING_KEY, country_code='QA', geocoded_location_file=GEOCODED_LOCATION_DICT_FILE)
-	#lg.bash_geocoding()
-	#print lg.request_online_geocodes('Landmark')
-	# Geocode all streets.
-	# outputfile = open('../data/qatar_streets_roads_geocoded.txt', 'w')
-	# streets = [w.lower() for w in open('../data/qatar_streets_roads.txt').read().split('\n')[:-1]]
-	# cpt = 0
-	# for st in streets:
-	# 	print 'geocoding street nb: %s' % cpt
-	# 	cpt += 1
-	# 	x = lg.request_online_geocodes(st)
-	# 	outputfile.write(json.dumps(x)+'\n')
-	# outputfile.close()
+	GEOCODED_LOCATION_DICT_FILE_AR = '../data/geolocated_locations_ar.txt'
+ 	lg = LocationGeocoding('en', google_key=GOOGLE_KEY, bing_key=BING_KEY, country_code='QA', geocoded_location_file=GEOCODED_LOCATION_DICT_FILE)
+	#lg_ar = LocationGeocoding('ar', google_key=GOOGLE_KEY, bing_key=BING_KEY, country_code='QA', geocoded_location_file=GEOCODED_LOCATION_DICT_FILE_AR)
+
+	location_dic_file_en = '../data/location_dict.txt'
+	geolocated_locations_file_en = '../data/geolocated_locations.txt'
+	location_dic_file_ar = '../data/location_dict_ar.txt'
+	geolocated_locations_file_ar = '../data/geolocated_locations_ar.txt'
+	lg.bash_geocoding(location_dic_file_en, geolocated_locations_file_en)
+	#lg_ar.bash_geocoding(location_dic_file_ar, geolocated_locations_file_ar)
+
+ 	#print lg.request_online_geocodes('Landmark')
+ 	# Geocode all streets.
+ 	# outputfile = open('../data/qatar_streets_roads_geocoded.txt', 'w')
+ 	# 	cpt += 1
+ 	# 	x = lg.request_online_geocodes(st)
+ 	# 	outputfile.write(json.dumps(x)+'\n')

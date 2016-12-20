@@ -447,3 +447,4 @@
 {"alternatives": null, "name": "al Yarmouk st", "coordinates": {"bing": {"lat": 25.3013, "lng": 51.49485, "formatted_address": "Al Yarmouk Street, New Al Hitmi, Doha, Qatar"}, "google": {"lat": 25.3014764, "lng": 51.4944944, "formatted_address": "Al Yarmouk St, Doha, Qatar"}, "nominatim": null}}
 {"alternatives": null, "name": "Zuhair Bin Qais st.", "coordinates": {"bing": {"lat": 25.27093, "lng": 51.50535, "formatted_address": "Zuhair Bin Qais Street, Al Mirqab Al Jadeed, Doha, Qatar"}, "google": null, "nominatim": null}}
 {"alternatives": null, "name": "zaid al khail st.", "coordinates": {"bing": {"lat": 25.27562, "lng": 51.50202, "formatted_address": "Zaid Al Khail Street, Al Sadd, Doha, Qatar"}, "google": null, "nominatim": null}}
+{"alternatives": ["qatar mall"], "name": "mall of qatar", "coordinates": null}

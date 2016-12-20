@@ -248,6 +248,7 @@ def extract_ar_entities():
 
 	arabic_twitter_location_er = ArabicTwitterLocationER(location_dictionary_ar_file=GEOCODED_LOCATION_AR_DICT_FILE)
 	location_geocoding = LocationGeocoding('ar', google_key=GOOGLE_KEY, bing_key=BING_KEY, country_code='QA',geocoded_location_file=GEOCODED_LOCATION_AR_DICT_FILE)
+	incident_classifier = IncidentClassifier(categories_dictionary_file=CATEGORIES_DICT_FILE)
 
 	while True:
 		data = REDIS_DB.blpop(read_channel)
@@ -260,9 +261,11 @@ def extract_ar_entities():
 		is_from_qatar = location_geocoding.is_tweet_from_qatar(data)
 		if len(locations) > 0:
 			geocoded_locations = [location_geocoding.geocode_location(location) for location in locations]
+			category = incident_classifier.get_tweet_category(data['text'])
 			data['is_from_qatar'] = is_from_qatar
 			data['contains_traffic_locations'] = True
 			data['traffic_locations'] = geocoded_locations
+			data['category'] = category
 			REDIS_DB.rpush(write_channel, json.dumps(data))
 		else:
 			data['contains_traffic_locations'] = False
