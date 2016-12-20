@@ -1,9 +1,14 @@
+#!/usr/bin/python
+# -*- coding: UTF-8 -*-
+
 __author__ = 'Noora'
 
 import logging
 import json
 from resources.resources import clean_text
+from resources.resources import clean_ar_text
 from resources.resources import ngrams
+from resources.resources import ar_ngrams
 from collections import defaultdict
 
 logger = logging.getLogger('__name__')
@@ -23,12 +28,19 @@ class IncidentClassifier:
 		self.categories = word_cat_label
 		logger.info('New Instance\n Categories considered: %s', self.categories)
 
-	def get_tweet_category(self, text):
+	def get_tweet_category(self, text, language):
 		found_categories = defaultdict(int)
-		text = clean_text(text.lower())
+		if language == 'en':
+			text = clean_text(text.lower())
+		elif language == 'ar':
+			text = clean_ar_text(text.lower())
+
 		for cat_word in self.categories:
 			category_len = len(cat_word.split(' '))
-			ngrams_list = ngrams(text, category_len)
+			if language == 'en':
+				ngrams_list = ngrams(text, category_len)
+			elif language == 'ar':
+				ngrams_list = ar_ngrams(text, category_len)
 			for ngram in ngrams_list:
 				if cat_word == ngram:
 					found_categories[self.categories[cat_word]] += 1
@@ -37,7 +49,9 @@ class IncidentClassifier:
 		else:
 			return 'Others'
 
-
-#if __name__ == '__main__':
-#	incidentClassifier = IncidentClassifier(categories_dictionary_file='../data/categories_dict.txt')
-#	print incidentClassifier.get_tweet_category("traffic jam becuase of car crash and poor visibility")
+"""
+if __name__ == '__main__':
+	incidentClassifier = IncidentClassifier(categories_dictionary_file='../data/categories_dict.txt')
+	text = u"RT @al_watanQatar: سفارتنا في #ألمانيا تؤكد سلامة جميع الرعايا القطريين بعد حادث الدهس في #برلين #الوطن #الدوحة #قطر #وزارة_الخارجية https…"
+	print incidentClassifier.get_tweet_category(text, 'ar')
+"""

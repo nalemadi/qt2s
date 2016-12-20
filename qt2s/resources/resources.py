@@ -1,3 +1,6 @@
+#!/usr/bin/python
+# -*- coding: UTF-8 -*-
+
 __author__ = 'sofiane'
 
 import string
@@ -43,6 +46,25 @@ def getWords(text):
 	:return: list of words
 	"""
 	return re.compile('\w+').findall(text)
+
+def getARWords(text):
+	#return re.compile(r'\w+').findall(text)
+	#return (re.sub(r'[a-zA-Z?]', '', text).strip())
+	return re.findall(ur'[\u0600-\u06FF]+', text)
+
+def ar_ngrams(inputText, n):
+	"""
+	get contiguous sequence of n words from a given sequence of tweet text
+	:param inputText:
+	:param n: size of gram
+	:return: get list contiguous sequence of n words from tweet text
+	"""
+	inputText = getARWords(inputText)
+	output = []
+	for i in range(len(inputText)-n+1):
+		g = ' '.join(inputText[i:i+n])
+		output.append(g)
+	return output
 
 def ngrams(inputText, n):
 	"""
