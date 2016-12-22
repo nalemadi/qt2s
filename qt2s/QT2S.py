@@ -223,7 +223,7 @@ def extract_entities():
 			is_from_qatar = location_geocoding.is_tweet_from_qatar(data)
 			has_blacklisted_location = has_black_listed_location(data['text'])
 
-			if len(locations) > 0 and not has_blacklisted_location:
+			if len(locations) > 0 and has_blacklisted_location == False:
 				geocoded_locations = [location_geocoding.geocode_location(location) for location in locations]
 				category = incident_classifier.get_tweet_category(data['text'], 'en')
 				data['is_from_qatar'] = is_from_qatar
