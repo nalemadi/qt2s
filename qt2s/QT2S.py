@@ -218,15 +218,13 @@ def extract_entities():
 			REDIS_DB.rpush(worldwide_tweets_channel, json.dumps(data))
 			logger.info("Tweet outside Qatar")
 		else:
-			locations = twitter_location_er.find_locations(data['text'])
+			locations = twitter_location_er.find_locations(data)
 			bad_words = slang_detection.contains_bad_words(data['text'])
-			is_from_qatar = location_geocoding.is_tweet_from_qatar(data)
 			has_blacklisted_location = has_black_listed_location(data['text'])
 
 			if len(locations) > 0 and has_blacklisted_location == False:
 				geocoded_locations = [location_geocoding.geocode_location(location) for location in locations]
 				category = incident_classifier.get_tweet_category(data['text'], 'en')
-				data['is_from_qatar'] = is_from_qatar
 				data['contains_traffic_locations'] = True
 				data['traffic_locations'] = geocoded_locations
 				data['bad_words'] = list(bad_words)
@@ -258,11 +256,9 @@ def extract_ar_entities():
 		data = json.loads(data)
 		locations = arabic_twitter_location_er.find_locations(data['text'])
 		#is_qatar_doha_expression_exist = arabic_twitter_location_er.is_tweet_has_local_expressions(data['text'].lower())
-		is_from_qatar = location_geocoding.is_tweet_from_qatar(data)
 		if len(locations) > 0:
 			geocoded_locations = [location_geocoding.geocode_location(location) for location in locations]
 			category = incident_classifier.get_tweet_category(data['text'], 'ar')
-			data['is_from_qatar'] = is_from_qatar
 			data['contains_traffic_locations'] = True
 			data['traffic_locations'] = geocoded_locations
 			data['category'] = category

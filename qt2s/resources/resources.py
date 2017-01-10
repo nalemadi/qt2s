@@ -82,7 +82,7 @@ def ngrams(inputText, n):
 
 def get_blacklisted_locations():
 	list = []
-	with open('../data/black_listed_locations.txt') as f:
+	with open('[REDACTED]/qt2s/qt2s/data/black_listed_locations.txt') as f:
 		for line in f:
 			bl_location = line.strip().lower()
 			list.append(bl_location)
@@ -101,3 +101,12 @@ def has_black_listed_location(text):
 		if bl_location in text:
 			return True
 	return False
+"""
+if __name__ == '__main__':
+	print clean_text('doha/cairo')
+	#test = "#TrafficUpdate Traffic at ISRO jn on Old Airport road #BajaateRaho"
+	test = "this is a test text"
+	print has_black_listed_location(test)
+	if has_black_listed_location(test) == False:
+		print 'no black listed location'
+"""

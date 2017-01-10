@@ -319,40 +319,6 @@ class LocationGeocoding:
 		location_dict['coordinates'] = coordinatesResult
 		return location_dict
 
-	def is_tweet_from_qatar(self, tweet):
-		""" Checks whether a tweet is from Qatar or not. A tweet is considered from Qatar if
-		and only if: it has geo-coordinates inside Qatar, or the user has the name of
-		a Qatari location in the location attribute of his profile.
-		Created by Noora, Edited by Sofiane
-		:param tweet: Tweet as a Json object.
-		:return: Boolean
-		"""
-		if 'coordinates' not in tweet.keys() and 'user' not in tweet.keys():
-				return False
-
-		if tweet['coordinates'] is not None:
-			lat = tweet['coordinates']['coordinates'][0]
-			lng = tweet['coordinates']['coordinates'][1]
-			# Qatar boundingBox 50.7048,24.4708,51.7371,26.2057
-			lat_max = 26.2057
-			lat_min = 24.4708
-			lng_max = 51.7371
-			lng_min = 50.7048
-			if lat_min <= lat <= lat_max and lng_min <= lng <= lng_max:
-				return True
-			else:
-				return False
-		if tweet['user']['location'] is None:
-			return False
-		else:
-			qatar_locations = self.get_qatar_locations()
-			user_location = clean_text(tweet['user']['location'].lower())
-			user_locations = user_location.split()
-			for usr_location in user_locations:
-				if usr_location in qatar_locations:
-					return True
-			return False
-
 	def is_tweet_outside_qatar(self, tweet):
 		"""
 		Checks whether a tweet is outside Qatar. A tweet is considered not from Qatar if
@@ -364,8 +330,8 @@ class LocationGeocoding:
 			return False
 
 		if tweet['coordinates'] is not None:
-			lat = tweet['coordinates']['coordinates'][0]
-			lng = tweet['coordinates']['coordinates'][1]
+			lng = tweet['coordinates']['coordinates'][0]
+			lat = tweet['coordinates']['coordinates'][1]
 			# Qatar boundingBox 50.7048,24.4708,51.7371,26.2057
 			lat_max = 26.2057
 			lat_min = 24.4708
@@ -377,21 +343,6 @@ class LocationGeocoding:
 				return True
 		else:
 			return False
-
-	@staticmethod
-	def get_qatar_locations():
-		"""
-		not used currently
-		:return:
-		"""
-		locations = []
-		with open('data/geolocated_locations.txt') as f:
-			for line in f:
-				if len(line.strip()) == 0:
-					continue
-				location = json.loads(line)
-				locations.append(location['name'].lower())
-		return locations
 
 if __name__ == '__main__':
 	"""
