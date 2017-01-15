@@ -88,6 +88,14 @@ def get_blacklisted_locations():
 			list.append(bl_location)
 	return list
 
+def get_ar_blacklisted_locations():
+	list = []
+	with open('[REDACTED]/qt2s/qt2s/data/black_listed_locations_ar.txt') as f:
+		for line in f:
+			bl_location = line.strip().lower()
+			list.append(bl_location)
+	return list
+
 
 def has_black_listed_location(text):
 	"""
@@ -101,12 +109,15 @@ def has_black_listed_location(text):
 		if bl_location in text:
 			return True
 	return False
-"""
+
+def has_ar_blacklisted_location(text):
+	ar_blacklisted_locations = get_ar_blacklisted_locations()
+	for ar_bl in ar_blacklisted_locations:
+		if ar_bl in text:
+			return True
+	return False
+
 if __name__ == '__main__':
-	print clean_text('doha/cairo')
-	#test = "#TrafficUpdate Traffic at ISRO jn on Old Airport road #BajaateRaho"
-	test = "this is a test text"
-	print has_black_listed_location(test)
-	if has_black_listed_location(test) == False:
-		print 'no black listed location'
-"""
+	ar_text = u'زحمة في اللؤلؤة'
+	print clean_ar_text(ar_text)
+	print (ar_ngrams(ar_text,2))

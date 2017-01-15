@@ -20,6 +20,7 @@ from traffic_classifier.ArabicTwitterClassifier import ArabicTwitterClassifier
 from location_recognition.ArabicTwitterLocationER import ArabicTwitterLocationER
 from incident_classifier.IncidentClassifier import IncidentClassifier
 from resources.resources import has_black_listed_location
+from resources.resources import has_ar_blacklisted_location
 
 
 from resources.mongodb_config import *
@@ -255,8 +256,9 @@ def extract_ar_entities():
 		data = data[1]
 		data = json.loads(data)
 		locations = arabic_twitter_location_er.find_locations(data['text'])
+		has_blacklisted_location = has_ar_blacklisted_location(data['text'])
 		#is_qatar_doha_expression_exist = arabic_twitter_location_er.is_tweet_has_local_expressions(data['text'].lower())
-		if len(locations) > 0:
+		if len(locations) > 0 and has_blacklisted_location == False:
 			geocoded_locations = [location_geocoding.geocode_location(location) for location in locations]
 			category = incident_classifier.get_tweet_category(data['text'], 'ar')
 			data['contains_traffic_locations'] = True

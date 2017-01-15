@@ -37,7 +37,7 @@ class ArabicTwitterLocationER:
 		text = clean_ar_text(text.lower())
 		#twords = text.split()
 		for location in self.locations:
-			if location in text:
+			if location in text and u'دوار اللؤلؤة' not in text:
 				found_locations.add(location)
 			"""
 			if len(location.split()) > 1 and location in text:
