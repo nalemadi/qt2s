@@ -113,11 +113,11 @@ def has_black_listed_location(text):
 def has_ar_blacklisted_location(text):
 	ar_blacklisted_locations = get_ar_blacklisted_locations()
 	for ar_bl in ar_blacklisted_locations:
-		if ar_bl in text:
+		if ar_bl in text.encode('utf-8'):
 			return True
 	return False
-
+"""
 if __name__ == '__main__':
-	ar_text = u'زحمة في اللؤلؤة'
-	print clean_ar_text(ar_text)
-	print (ar_ngrams(ar_text,2))
+	ar_text = ur'زحمة في اللؤلؤة'
+	print has_ar_blacklisted_location(ar_text)
+"""
