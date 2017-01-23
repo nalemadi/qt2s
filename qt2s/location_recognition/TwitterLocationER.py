@@ -82,7 +82,7 @@ class TwitterLocationER:
 			for ngram in ngrams_list:
 				if location_key == ngram:
 					if ngram == "the mall" or ngram == "the pearl" or ngram == "pearl" or ngram == "landmark":
-						if any(x in text for x in expressions) == False and self.is_tweet_from_qatar(tweet) == False:
+						if any(x in text for x in expressions) == False or self.is_tweet_from_qatar(tweet) == False:
 							print 'not related'
 							continue
 						else:
