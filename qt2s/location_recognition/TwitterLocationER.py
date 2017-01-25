@@ -87,7 +87,8 @@ class TwitterLocationER:
 							continue
 						else:
 							found_locations.add(self.locations[location_key])
-					found_locations.add(self.locations[location_key])
+					else:
+						found_locations.add(self.locations[location_key])
 		return found_locations
 
 	def is_tweet_from_qatar(self, tweet):
