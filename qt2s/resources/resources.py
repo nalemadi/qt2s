@@ -107,6 +107,7 @@ def has_black_listed_location(text):
 	blacklisted_locations = get_blacklisted_locations()
 	for bl_location in blacklisted_locations:
 		if bl_location in text:
+			print bl_location
 			return True
 	return False
 
