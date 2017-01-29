@@ -222,7 +222,7 @@ def extract_entities():
 			locations = twitter_location_er.find_locations(data)
 			bad_words = slang_detection.contains_bad_words(data['text'])
 			has_blacklisted_location = has_black_listed_location(data['text'])
-			print 'has blacklisted locations:', has_blacklisted_location, ',', data['text']
+			#print 'has blacklisted locations:', has_blacklisted_location, ',', data['text']
 
 			if len(locations) > 0 and has_blacklisted_location == False:
 				print 'related EN tweet:', data['text']

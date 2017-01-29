@@ -86,7 +86,10 @@ def get_blacklisted_locations():
 		for line in f:
 			strip_line = line.strip()
 			bl_location = strip_line.lower()
-			list.append(bl_location)
+			if bl_location == '':
+				print 'bl_location:', bl_location
+			else:
+				list.append(bl_location)
 	return list
 
 def get_ar_blacklisted_locations():
