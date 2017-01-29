@@ -84,7 +84,8 @@ def get_blacklisted_locations():
 	list = []
 	with open('[REDACTED]/qt2s/qt2s/data/black_listed_locations.txt') as f:
 		for line in f:
-			bl_location = line.strip().lower()
+			strip_line = line.strip()
+			bl_location = strip_line.lower()
 			list.append(bl_location)
 	return list
 
@@ -92,7 +93,8 @@ def get_ar_blacklisted_locations():
 	list = []
 	with open('[REDACTED]/qt2s/qt2s/data/black_listed_locations_ar.txt') as f:
 		for line in f:
-			bl_location = line.strip().lower()
+			strip_line = line.strip()
+			bl_location = strip_line.lower()
 			list.append(bl_location)
 	return list
 
@@ -107,7 +109,7 @@ def has_black_listed_location(text):
 	blacklisted_locations = get_blacklisted_locations()
 	for bl_location in blacklisted_locations:
 		if bl_location in text:
-			print bl_location
+			print 'black location found:',bl_location
 			return True
 	return False
 
@@ -119,6 +121,8 @@ def has_ar_blacklisted_location(text):
 	return False
 """
 if __name__ == '__main__':
-	ar_text = ur'زحمة في اللؤلؤة'
-	print has_ar_blacklisted_location(ar_text)
+	#ar_text = ur'زحمة في اللؤلؤة'
+	#print has_ar_blacklisted_location(ar_text)
+	en_text = 'this is a test for black listed locations prai'
+	print has_black_listed_location(en_text)
 """
