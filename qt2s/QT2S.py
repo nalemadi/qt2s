@@ -6,7 +6,6 @@ import multiprocessing
 import subprocess
 import os
 from datetime import datetime
-import time
 import yaml
 from pymongo import MongoClient, errors
 import redis
@@ -72,9 +71,6 @@ REDIS_NAME_LOCATED_ARABIC_TRAFFIC_TWEETS = cfg['redis']['channels']['located_ara
 REDIS_NAME_WORLDWIDE_GEOLOCATED_TWEETS = cfg['redis']['channels']['worldwide_geolocated_tweets']
 REDIS_DB = redis.Redis(host=cfg['redis']['host'], port=cfg['redis']['port'])
 
-# --------------------------------
-# Files
-# --------------------------------
 KEYWORD_DICT_FILE = 'data/traffic_dict.csv'
 GEOCODED_LOCATION_DICT_FILE = 'data/geolocated_locations.txt'
 GEOCODED_LOCATION_AR_DICT_FILE = 'data/geolocated_locations_ar.txt'
@@ -82,7 +78,7 @@ SLANG_DICT_FILE = 'data/slang_dict.csv'
 CATEGORIES_DICT_FILE = 'data/categories_dict.txt'
 
 # ---------------------------------
-# Twitter/Google/Bing 
+# Twitter/Google/Bing
 # ---------------------------------
 TWITTER_KEY = {'consumer_key': cfg['online_keys']['twitter']['consumer_key'], 'consumer_secret': cfg['online_keys']['twitter']['consumer_secret'], 'access_token': cfg['online_keys']['twitter']['access_token'], 'access_token_secret': cfg['online_keys']['twitter']['access_secret']}
 GOOGLE_KEY = cfg['online_keys']['google']
@@ -99,11 +95,8 @@ logging.basicConfig(filename=LOG_FILE_LOCATION,format='%(levelname)s: %(module)s
 logger = logging.getLogger('__name__')
 
 # ---------------------------------
-# Helpful Functions  
+# Helpful Functions
 # ---------------------------------
-
-def write_collected_tweets():
-	return open("data/tweets_stat.txt", '+w')
 
 def to_datetime(tweet):
 	return datetime.strptime(tweet.get('created_at',None),'%a %b %d %H:%M:%S +0000 %Y')
@@ -235,13 +228,6 @@ def extract_entities():
 				data['bad_words'] = list(bad_words)
 				data['contains_bad_words'] = True if len(bad_words) > 0 else False
 				data['category'] = category
-
-				# write collected tweets
-				with write_collected_tweets() as w_file:
-					str_date = str(datetime.now())
-					dt = datetime.strptime(str_date, '%Y-%m-%d %H:%M:%S.%f')
-					tuple = time.mktime(dt.timetuple()) + (dt.microsecond/1000000.0)
-					w_file.write(json.dumps(data)+'\t'+ tuple)
 				# Write to a new Redis channel: REDIS_NAMESPACE:REDIS_NAME_TRAFFIC_TWEETS
 				REDIS_DB.rpush(write_channel, json.dumps(data))
 				logger.info("New located tweets:%s\n Locations: %s", data['text'], list(locations))
@@ -250,7 +236,6 @@ def extract_entities():
 				data['contains_traffic_locations'] = False
 				REDIS_DB.rpush(non_located_traffic_tweets_channel, json.dumps(data))
 				REDIS_DB.ltrim(non_located_traffic_tweets_channel, -1000000, -1)
-
 
 def extract_ar_entities():
 	read_channel = '%s:%s' % (REDIS_NAMESPACE, REDIS_NAME_TRAFFIC_ARABIC_TWEETS)
