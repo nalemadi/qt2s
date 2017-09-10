@@ -309,22 +309,25 @@ def persist_tweets_mongodb(redis_channel, collection):
 
 
 if __name__ == '__main__':
-
+	print 'start collector'
 	collector = multiprocessing.Process(name='Collector', target=collect_tweets)
 	collector.start()
 
+	print 'start classifer'
 	classifier = multiprocessing.Process(name='Classifier', target=classify_tweets_paco)
 	classifier.start()
 
 	ar_classifier = multiprocessing.Process(name='ClassifierAR', target=classify_arabic_tweets)
 	ar_classifier.start()
 
+	print 'start extractor'
 	location_tagger = multiprocessing.Process(name='LocationER', target=extract_entities)
 	location_tagger.start()
 
 	location_tagger_ar = multiprocessing.Process(name='ARLocationER', target=extract_ar_entities)
 	location_tagger_ar.start()
 
+	print 'start persisting'
 	# Store data, we might need them in the future
 	persist_non_traffic_tweets = multiprocessing.Process(name='PERSIST_COLLECTION_ENG_NON_TRAFFIC', target=persist_tweets_mongodb, args=(REDIS_NAME_NON_TRAFFIC_TWEETS, COLLECTION_ENG_NON_TRAFFIC))
 	persist_non_traffic_tweets.start()
