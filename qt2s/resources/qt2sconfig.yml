@@ -1,0 +1,38 @@
+redis:
+    host: localhost
+    port: 6379
+    hostname: QT2S
+    channels:
+        raw_tweets: raw_tweets
+        traffic_tweets: traffic_tweets
+        non_traffic_tweets: non_traffic_tweets
+        located_traffic_tweets: located_traffic_tweets
+        non_located_traffic_tweets: non_located_traffic_tweets
+        raw_arabic_tweets: raw_arabic_tweets
+        traffic_arabic_tweets: traffic_arabic_tweets
+        non_traffic_arabic_tweets: non_traffic_arabic_tweets
+        non_located_arabic_traffic_tweets: non_located_arabic_traffic_tweets
+        located_arabic_traffic_tweets: located_arabic_traffic_tweets
+        worldwide_geolocated_tweets: worldwide_geolocated_tweets
+mongodb:
+    hostname: [REDACTED]
+    port: 27017
+    dbname: QT2S
+    collections:
+        COLLECTION_AR_NON_TRAFFIC_NAME: non_traffic_arabic_tweets
+        COLLECTION_ENG_NON_TRAFFIC_NAME: non_traffic_tweets
+        COLLECTION_AR_NON_LOCATED_TRAFFIC_NAME: non_located_arabic_traffic_tweets
+        COLLECTION_ENG_NON_LOCATED_TRAFFIC_NAME: non_located_traffic_tweets
+        COLLECTION_ENG_LOCATED_TRAFFIC_QA_NAME: located_traffic_tweets_qa
+        COLLECTION_AR_LOCATED_TRAFFIC_QA_NAME: located_arabic_traffic_tweets_qa
+        COLLECTION_ENG_LOCATED_TRAFFIC_WORLDWIDE_NAME: located_arabic_traffic_tweets_worldwide
+online_keys:
+    google: [REDACTED]
+    bing: [REDACTED]
+    twitter:
+        consumer_key: [REDACTED]
+        consumer_secret: [REDACTED]
+        access_token: [REDACTED]
+        access_secret: [REDACTED]
+logfile: [REDACTED]/qt2s/qt2s/backend_run.log
+persister_folder: [REDACTED]/qt2s/persister
