@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="VcsDirectoryMappings">
-    <mapping directory="$PROJECT_DIR$" vcs="Git" />
+    <mapping directory="" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../QuantifiedCity" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../qt2sapi" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../qtmDashboard" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../swissknife" vcs="Git" />
   </component>
 </project>
