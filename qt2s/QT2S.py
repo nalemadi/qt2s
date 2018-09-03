@@ -252,20 +252,24 @@ def extract_ar_entities():
 			continue
 		data = data[1]
 		data = json.loads(data)
-		locations = arabic_twitter_location_er.find_locations(data['text'])
-		has_blacklisted_location = has_ar_blacklisted_location(data['text'])
-		#is_qatar_doha_expression_exist = arabic_twitter_location_er.is_tweet_has_local_expressions(data['text'].lower())
-		if len(locations) > 0 and has_blacklisted_location == False:
-			geocoded_locations = [location_geocoding.geocode_location(location) for location in locations]
-			category = incident_classifier.get_tweet_category(data['text'], 'ar')
-			data['contains_traffic_locations'] = True
-			data['traffic_locations'] = geocoded_locations
-			data['category'] = category
-			REDIS_DB.rpush(write_channel, json.dumps(data))
+		is_worldwide_tweet = location_geocoding.is_tweet_outside_qatar(data)
+		if is_worldwide_tweet:
+			logger.info("AR Tweet outside Qatar")
 		else:
-			data['contains_traffic_locations'] = False
-			REDIS_DB.rpush(non_located_arabic_traffic_tweets_channel, json.dumps(data))
-			REDIS_DB.ltrim(non_located_arabic_traffic_tweets_channel, -1000000, -1)
+			locations = arabic_twitter_location_er.find_locations(data['text'])
+			has_blacklisted_location = has_ar_blacklisted_location(data['text'])
+			#is_qatar_doha_expression_exist = arabic_twitter_location_er.is_tweet_has_local_expressions(data['text'].lower())
+			if len(locations) > 0 and has_blacklisted_location == False:
+				geocoded_locations = [location_geocoding.geocode_location(location) for location in locations]
+				category = incident_classifier.get_tweet_category(data['text'], 'ar')
+				data['contains_traffic_locations'] = True
+				data['traffic_locations'] = geocoded_locations
+				data['category'] = category
+				REDIS_DB.rpush(write_channel, json.dumps(data))
+			else:
+				data['contains_traffic_locations'] = False
+				REDIS_DB.rpush(non_located_arabic_traffic_tweets_channel, json.dumps(data))
+				REDIS_DB.ltrim(non_located_arabic_traffic_tweets_channel, -1000000, -1)
 
 
 def persist_tweets(redis_channel, folder_name):

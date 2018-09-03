@@ -319,6 +319,9 @@ class LocationGeocoding:
 		location_dict['coordinates'] = coordinatesResult
 		return location_dict
 
+	def get_qatar_locations(self):
+		return ['qatar','doha', 'wakra', u'قطر', u'الدوحة']
+
 	def is_tweet_outside_qatar(self, tweet):
 		"""
 		Checks whether a tweet is outside Qatar. A tweet is considered not from Qatar if
@@ -341,18 +344,28 @@ class LocationGeocoding:
 				return False
 			else:
 				return True
-		else:
+
+		# check user location
+		if tweet['user']['location'] is None:
 			return False
+		else:
+			qatar_locations = self.get_qatar_locations()
+			user_location = clean_text(tweet['user']['location'].lower())
+			user_locations = user_location.split()
+			for usr_location in user_locations:
+				if usr_location in qatar_locations:
+					return False
+			return True
 
 if __name__ == '__main__':
 	"""
 	for testing
 	"""
- 	GOOGLE_KEY = '[REDACTED]'
- 	BING_KEY = '[REDACTED]'
+	GOOGLE_KEY = '[REDACTED]'
+	BING_KEY = '[REDACTED]'
 	GEOCODED_LOCATION_DICT_FILE = '../data/geolocated_locations.txt'
 	GEOCODED_LOCATION_DICT_FILE_AR = '../data/geolocated_locations_ar.txt'
- 	lg = LocationGeocoding('en', google_key=GOOGLE_KEY, bing_key=BING_KEY, country_code='QA', geocoded_location_file=GEOCODED_LOCATION_DICT_FILE)
+	lg = LocationGeocoding('en', google_key=GOOGLE_KEY, bing_key=BING_KEY, country_code='QA', geocoded_location_file=GEOCODED_LOCATION_DICT_FILE)
 	#lg_ar = LocationGeocoding('ar', google_key=GOOGLE_KEY, bing_key=BING_KEY, country_code='QA', geocoded_location_file=GEOCODED_LOCATION_DICT_FILE_AR)
 
 	location_dic_file_en = '../data/location_dict.txt'
@@ -362,9 +375,9 @@ if __name__ == '__main__':
 	lg.bash_geocoding(location_dic_file_en, geolocated_locations_file_en)
 	#lg_ar.bash_geocoding(location_dic_file_ar, geolocated_locations_file_ar)
 
- 	#print lg.request_online_geocodes('Landmark')
- 	# Geocode all streets.
- 	# outputfile = open('../data/qatar_streets_roads_geocoded.txt', 'w')
- 	# 	cpt += 1
- 	# 	x = lg.request_online_geocodes(st)
- 	# 	outputfile.write(json.dumps(x)+'\n')
+	#print lg.request_online_geocodes('Landmark')
+	# Geocode all streets.
+	# outputfile = open('../data/qatar_streets_roads_geocoded.txt', 'w')
+	# 	cpt += 1
+	# 	x = lg.request_online_geocodes(st)
+	# 	outputfile.write(json.dumps(x)+'\n')
