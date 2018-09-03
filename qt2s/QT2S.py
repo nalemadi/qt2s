@@ -20,7 +20,7 @@ from location_recognition.ArabicTwitterLocationER import ArabicTwitterLocationER
 from incident_classifier.IncidentClassifier import IncidentClassifier
 from resources.resources import has_black_listed_location
 from resources.resources import has_ar_blacklisted_location
-from resources.mongodb_config import *
+#from resources.mongodb_config import *
 
 # ---------------------------------
 # Configuration File
